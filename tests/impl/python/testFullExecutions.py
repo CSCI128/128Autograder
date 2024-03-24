@@ -4,9 +4,10 @@ import unittest
 
 from Executors.Executor import Executor
 from Executors.Environment import ExecutionEnvironmentBuilder, ExecutionEnvironment, PossibleResults, getOrAssert
-from StudentSubmissionImpl.Python.PythonImportFactory import PythonImportFactory
+from StudentSubmissionImpl.Python.PythonFileImportFactory import PythonFileImportFactory
 from StudentSubmissionImpl.Python.PythonRunners import FunctionRunner, MainModuleRunner
 from StudentSubmissionImpl.Python.PythonSubmission import PythonSubmission
+from TestingFramework.SingleFunctionMock import SingleFunctionMock
 
 
 # These serve as integration tests for the entire submission pipeline sans the gradescope stuff
@@ -84,7 +85,7 @@ class TestFullExecutions(unittest.TestCase):
     def testExecutorSetsParameters(self):
         program = \
                 "def fun(param, *args):\n"\
-                f"    return (param, *args)"
+                "    return (param, *args)"
 
         self.writePythonFile("test_code.py", program)
 
@@ -129,9 +130,9 @@ class TestFullExecutions(unittest.TestCase):
                 .build()\
                 .validate()
 
-        PythonImportFactory.registerFile(os.path.abspath(self.TEST_IMPORT_NAME), "mod1")
+        PythonFileImportFactory.registerFile(os.path.abspath(self.TEST_IMPORT_NAME), "mod1")
 
-        importHandler = PythonImportFactory.buildImport()
+        importHandler = PythonFileImportFactory.buildImport()
 
         if importHandler is None:
             self.fail("This shouldn't happen")
@@ -147,6 +148,84 @@ class TestFullExecutions(unittest.TestCase):
         actualOutput = getOrAssert(environment, PossibleResults.RETURN_VAL)
 
         self.assertEqual(expectedOutput, actualOutput) # type: ignore
+
+    def testMockedImportFullExecution(self):
+        with open(os.path.join(self.PYTHON_PROGRAM_DIRECTORY, "main.py"), 'w') as w:
+            w.writelines(
+                "import matplotlib.pyplot as plt\n"\
+                "plt.plot([1, 2, 3, 4])\n"\
+                "plt.plot('illegal!')\n"
+            )
+
+        submission = PythonSubmission()\
+                .setSubmissionRoot(self.PYTHON_PROGRAM_DIRECTORY)\
+                .enableRequirements()\
+                .addPackage("matplotlib")\
+                .load()\
+                .build()\
+                .validate()
+
+        plotMock = SingleFunctionMock("plot")
+
+        environment = ExecutionEnvironmentBuilder(submission)\
+                .setTimeout(10)\
+                .addModuleMock("matplotlib.pyplot", {"matplotlib.pyplot.plot": plotMock})\
+                .build()
+
+        runner = MainModuleRunner()
+        runner.setMocks(environment.mocks)
+
+        Executor.execute(environment, runner)
+
+        submission.TEST_ONLY_removeRequirements()
+
+        actualOutput: SingleFunctionMock = getOrAssert(environment, PossibleResults.MOCK_SIDE_EFFECTS, mock="matplotlib.pyplot.plot") # type: ignore
+
+        actualOutput.assertCalledWith([1, 2, 3, 4])
+        actualOutput.assertCalledWith("illegal!")
+
+    def testSpyImportFullExecution(self):
+        with open(os.path.join(self.PYTHON_PROGRAM_DIRECTORY, "main.py"), 'w') as w:
+            w.writelines(
+                "import matplotlib.pyplot as plt\n"\
+                "plt.plot([1, 2, 3, 4])\n"\
+                "plt.savefig('out.png')"
+
+            )
+
+        submission = PythonSubmission()\
+                .setSubmissionRoot(self.PYTHON_PROGRAM_DIRECTORY)\
+                .enableRequirements()\
+                .addPackage("matplotlib")\
+                .load()\
+                .build()\
+                .validate()
+
+        plotMock = SingleFunctionMock("plot", spy=True)
+        savefigMock = SingleFunctionMock("savefig", spy=True)
+
+        environment = ExecutionEnvironmentBuilder(submission)\
+                .setTimeout(10)\
+                .addModuleMock("matplotlib.pyplot", {"matplotlib.pyplot.plot": plotMock})\
+                .addModuleMock("matplotlib.pyplot", {"matplotlib.pyplot.savefig": savefigMock})\
+                .build()
+
+        runner = MainModuleRunner()
+        runner.setMocks(environment.mocks)
+
+        Executor.execute(environment, runner)
+
+        submission.TEST_ONLY_removeRequirements()
+
+        plotResult: SingleFunctionMock = getOrAssert(environment, PossibleResults.MOCK_SIDE_EFFECTS, mock="matplotlib.pyplot.plot") # type: ignore
+        saveFigResult: SingleFunctionMock = getOrAssert(environment, PossibleResults.MOCK_SIDE_EFFECTS, mock="matplotlib.pyplot.savefig") # type: ignore
+
+        plotResult.assertCalledWith([1, 2, 3, 4])
+        saveFigResult.assertCalled()
+
+        actualFile: str = getOrAssert(environment, PossibleResults.FILE_OUT, file="out.png") # type: ignore
+
+        self.assertGreater(len(actualFile), 0)
 
     def testImportFullExecutionWithDataFiles(self):
         # Huge shout out to Nate T from F23 for finding this issue.
@@ -172,8 +251,8 @@ class TestFullExecutions(unittest.TestCase):
                 .build()\
                 .validate()
 
-        PythonImportFactory.registerFile(os.path.abspath(self.TEST_IMPORT_NAME), "mod1")
-        importHandler = PythonImportFactory.buildImport()
+        PythonFileImportFactory.registerFile(os.path.abspath(self.TEST_IMPORT_NAME), "mod1")
+        importHandler = PythonFileImportFactory.buildImport()
 
         if importHandler is None:
             self.fail("This shouldn't happen")
@@ -210,9 +289,9 @@ class TestFullExecutions(unittest.TestCase):
                 .build()\
                 .validate()
 
-        PythonImportFactory.registerFile(os.path.abspath(self.TEST_IMPORT_NAME), "mod1")
-        PythonImportFactory.registerFile(os.path.abspath(os.path.join(self.PYTHON_PROGRAM_DIRECTORY, "main.py")), "main")
-        importHandler = PythonImportFactory.buildImport()
+        PythonFileImportFactory.registerFile(os.path.abspath(self.TEST_IMPORT_NAME), "mod1")
+        PythonFileImportFactory.registerFile(os.path.abspath(os.path.join(self.PYTHON_PROGRAM_DIRECTORY, "main.py")), "main")
+        importHandler = PythonFileImportFactory.buildImport()
 
         if importHandler is None:
             self.fail("This shouldn't happen")

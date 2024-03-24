@@ -6,14 +6,13 @@ from typing import Dict, Optional
 from importlib.abc import Loader, MetaPathFinder
 from importlib.util import spec_from_file_location
 
-
-
 class ModuleFinder(MetaPathFinder):
     def __init__(self) -> None:
         self.knownModules: Dict[str, str] = {}
 
     def addModule(self, fullname, path):
-        self.knownModules[fullname] = path
+        for mod in fullname.split('.'):
+            self.knownModules[mod] = path
 
     def find_spec(self, fullname, path, target=None):
         if fullname not in self.knownModules:
@@ -38,3 +37,19 @@ class ModuleLoader(Loader):
         compiledImport: CodeType = compile(data, self.filename, "exec")
         exec(compiledImport, vars(module))
     
+class PythonFileImportFactory:
+    moduleFinder: ModuleFinder = ModuleFinder()
+
+    @classmethod
+    def registerFile(cls, pathToFile: str, importName: str):
+        if cls.moduleFinder == None:
+            raise AttributeError("Invalid State: Module finder is none")
+        if "addModule" in vars(cls.moduleFinder):
+            raise AttributeError("Invalid ModuleFinder for registration")
+
+        cls.moduleFinder.addModule(importName, pathToFile)
+    
+    @classmethod
+    def buildImport(cls):
+        return cls.moduleFinder
+

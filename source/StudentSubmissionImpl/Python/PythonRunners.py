@@ -1,17 +1,11 @@
-import sys
 from abc import abstractmethod
-import importlib
-from types import CodeType, ModuleType, FunctionType
-from typing import Dict, List, Optional, Tuple, Any
+from importlib import import_module
+from types import CodeType, ModuleType
+from typing import Dict, Optional, Tuple, Any
 
 from StudentSubmission.common import MissingFunctionDefinition, InvalidTestCaseSetupCode
 from TestingFramework.SingleFunctionMock import SingleFunctionMock
 from StudentSubmission.Runners import IRunner
-
-# OMG I FINALLY FOUND HOW TO DO THIS CORRECTLY!!
-# https://stackoverflow.com/questions/55905240/python-dynamically-import-modules-code-from-string-with-importlib
-# https://docs.python.org/3/reference/import.html#the-meta-path
-# https://stackoverflow.com/questions/43571737/how-to-implement-an-import-hook-that-can-modify-the-source-code-on-the-fly-using
 
 class GenericPythonRunner(IRunner[CodeType]):
     """
@@ -31,7 +25,7 @@ class GenericPythonRunner(IRunner[CodeType]):
 
     def __init__(self):
         self.studentSubmission: Optional[CodeType] = None
-        self.mocks: Optional[Dict[str, SingleFunctionMock]] = None
+        self.mocks: Optional[Dict[str, Optional[SingleFunctionMock]]] = None
         self.parameters: Tuple[Any] = tuple()
         self.setupCode = None
 
@@ -44,11 +38,34 @@ class GenericPythonRunner(IRunner[CodeType]):
     def getParameters(self) -> Tuple[Any]:
         return self.parameters
 
-    def setMocks(self, mocks: Dict[str, SingleFunctionMock]):
+    def setMocks(self, mocks: Dict[str, Optional[SingleFunctionMock]]):
         self.mocks = mocks
 
-    def getMocks(self) -> dict[str, SingleFunctionMock] | None:
+    def getMocks(self) -> Optional[Dict[str, Optional[SingleFunctionMock]]]:
         return self.mocks
+
+    def _resolveMocks(self):
+        if self.mocks is None:
+            return
+
+        mocksToResolve = [ mockName for mockName, mock in self.mocks.items() if mock is None]
+        # prolly add logging here
+
+        for mock in mocksToResolve:
+            splitName = mock.split('.')
+            functionName = splitName[-1]
+
+            try:
+                mod = import_module(".".join(splitName[:-1]))
+            except Exception as ex:
+                raise ImportError(f"Failed to import {splitName} during mock resolution. This is likely an autograder error.\n{str(ex)}")
+
+            mockedFunction: Optional[SingleFunctionMock] = getattr(mod, functionName, None)
+
+            if mockedFunction is None:
+                raise ImportError(f"Failed to locate {functionName} in {splitName[:-1]} during mock resolution. This is likely an autograder error.")
+
+            self.mocks[mock] = mockedFunction
 
     def setSetupCode(self, setupCode):
         self.setupCode = compile(setupCode, "setup_code", "exec")
@@ -65,6 +82,9 @@ class GenericPythonRunner(IRunner[CodeType]):
             return
 
         for mockName, mock in self.mocks.items():
+            if mock is None:
+                continue
+
             if mock.spy:
                 mock.setSpyFunction(getattr(module, mockName))
 
@@ -75,7 +95,11 @@ class GenericPythonRunner(IRunner[CodeType]):
         raise NotImplementedError("Must use implementation of runner.")
 
     def __call__(self):
-        return self.run()
+        returnVal = self.run()
+
+        self._resolveMocks()
+
+        return returnVal
 
 
 class MainModuleRunner(GenericPythonRunner):

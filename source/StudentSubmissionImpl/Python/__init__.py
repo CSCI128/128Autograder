@@ -3,8 +3,4 @@ from StudentSubmission.SubmissionProcessFactory import SubmissionProcessFactory
 from StudentSubmissionImpl.Python.PythonSubmission import PythonSubmission
 from StudentSubmissionImpl.Python.PythonSubmissionProcess import RunnableStudentSubmission
 
-from StudentSubmissionImpl.Python.PythonImportFactory import PythonImportFactory
-from StudentSubmissionImpl.Python.PythonImportMachinery import ModuleFinder
-
-PythonImportFactory.setModuleFinder(ModuleFinder)
 SubmissionProcessFactory.register(PythonSubmission, RunnableStudentSubmission)

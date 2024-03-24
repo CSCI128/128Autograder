@@ -132,7 +132,7 @@ class StudentSubmissionProcess(multiprocessing.Process):
     def _teardown(self, stdout: StringIO, exception: Optional[Exception],
                   returnValue: Any, parameters: Tuple[Any], mocks: Optional[Dict[str, SingleFunctionMock]]) -> None:
         """
-.       This function takes the results from the child process and serializes them.
+        This function takes the results from the child process and serializes them.
         Then is stored in the shared memory object that the parent is able to access.
 
         :param _stdout: The raw io from the stdout.

@@ -2,10 +2,10 @@ from typing import Dict, Type
 
 from Executors.Environment import ExecutionEnvironment
 
-from .ISubmissionProcess import ISubmissionProcess
-from .Runners import IRunner
+from StudentSubmission.ISubmissionProcess import ISubmissionProcess
+from StudentSubmission.Runners import IRunner
 
-from .AbstractStudentSubmission import AbstractStudentSubmission
+from StudentSubmission.AbstractStudentSubmission import AbstractStudentSubmission
 
 
 class SubmissionProcessFactory:

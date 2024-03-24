@@ -4,7 +4,7 @@ import shutil
 import sys
 import unittest
 
-from StudentSubmissionImpl.Python.PythonImportFactory import PythonImportFactory
+from StudentSubmissionImpl.Python.PythonFileImportFactory import PythonFileImportFactory
 
 class TestPythonImportFactory(unittest.TestCase):
     TEST_FILE_DIRECTORY: str = "./sandbox"
@@ -29,8 +29,8 @@ class TestPythonImportFactory(unittest.TestCase):
     def testImportsFile(self):
         filename = "calc.py"
         self.writeTestFile(filename)
-        PythonImportFactory.registerFile(os.path.join(self.TEST_FILE_DIRECTORY, filename), "calc")
-        sys.meta_path.insert(0, PythonImportFactory.buildImport())
+        PythonFileImportFactory.registerFile(os.path.join(self.TEST_FILE_DIRECTORY, filename), "calc")
+        sys.meta_path.insert(0, PythonFileImportFactory.buildImport())
         
         importedModule = importlib.import_module("calc")
         self.assertEqual(importedModule.sqrt(4), 2)
@@ -38,17 +38,8 @@ class TestPythonImportFactory(unittest.TestCase):
     def testImportErrorRaised(self):
         filename = "bad.py"
 
-        PythonImportFactory.registerFile(os.path.join(self.TEST_FILE_DIRECTORY, filename), "bad")
-        sys.meta_path.insert(0, PythonImportFactory.buildImport())
+        PythonFileImportFactory.registerFile(os.path.join(self.TEST_FILE_DIRECTORY, filename), "bad")
+        sys.meta_path.insert(0, PythonFileImportFactory.buildImport())
 
         with self.assertRaises(ImportError):
             importlib.import_module("bad")
-
-    @unittest.skip("Not implemented")
-    def testImportSubmodule(self):
-        filename = "calc.py"
-        self.writeTestFile(filename)
-        PythonImportFactory.registerFile(os.path.join(self.TEST_FILE_DIRECTORY, filename), "a.calc")
-        sys.meta_path.insert(0, PythonImportFactory.buildImport())
-        import a.calc as calc
-        self.assertEqual(calc.sqrt(4), 2)
