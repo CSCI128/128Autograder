@@ -1,8 +1,6 @@
-from importlib import import_module
-from importlib.abc import MetaPathFinder
 import os
-from types import ModuleType
-from typing import List, Dict, Optional, Tuple, TypeVar, Union, Any
+from types import NoneType
+from typing import Callable, Generic, List, Dict, Optional, Tuple, Type, TypeVar, Union, Any
 from enum import Enum
 
 import dataclasses
@@ -18,10 +16,13 @@ class PossibleResults(Enum):
     EXCEPTION = "exception"
     PARAMETERS = "parameters"
 
-T = TypeVar("T", str, Exception, object)
+class Results():
+    pass
+
+ImplEnvironment = TypeVar("ImplEnvironment")
 
 @dataclasses.dataclass
-class ExecutionEnvironment:
+class ExecutionEnvironment(Generic[ImplEnvironment]):
     """
     Description
     ===========
@@ -40,13 +41,10 @@ class ExecutionEnvironment:
     The key is the file name, and the value is the file name with its relative path"""
     parameters: Tuple[Any] = dataclasses.field(default_factory=tuple)
     """What arguments to pass to the submission"""
-    import_loader: List[MetaPathFinder] = dataclasses.field(default_factory=list)
-    """The import loader. This shouldn't be set directly"""
-    mocks: Dict[str, Optional[SingleFunctionMock]] = dataclasses.field(default_factory=dict)
-    """What mocks have been defined for this run of the student's submission"""
+    impl_environment: Optional[ImplEnvironment] = None
+    """The implementation environment options. Can be None"""
     timeout: int = 10
     """What timeout has been defined for this run of the student's submission"""
-
     resultData: Dict[PossibleResults, Any] = dataclasses.field(default_factory=dict)
     """
     This dict contains the data that was generated from the student's submission. This should not be accessed
@@ -121,9 +119,10 @@ def getOrAssert(environment: ExecutionEnvironment,
 
     return resultData[field]
 
-Builder = TypeVar("Builder", bound="ExecutionEnvironmentBuilder")
+Builder = TypeVar("Builder", bound="ExecutionEnvironmentBuilder[Any]")
+ImplEnvironmentBuilder = TypeVar("ImplEnvironmentBuilder")
 
-class ExecutionEnvironmentBuilder():
+class ExecutionEnvironmentBuilder(Generic[ImplEnvironment]):
     """
     Description
     ===========
@@ -134,10 +133,9 @@ class ExecutionEnvironmentBuilder():
     """
 
     def __init__(self, submission: AbstractStudentSubmission):
-        self.environment = ExecutionEnvironment(submission)
+        self.environment = ExecutionEnvironment[ImplEnvironment](submission)
         self.dataRoot = "."
         self.parameters: List[Any] = []
-        self.moduleMocks: Dict[str, Dict[str, object]] = {}
 
     def setDataRoot(self: Builder, dataRoot: str) -> Builder:
         """
@@ -171,36 +169,6 @@ class ExecutionEnvironmentBuilder():
             stdin = stdin.splitlines()
 
         self.environment.stdin = stdin
-
-        return self
-
-    def addModuleMock(self: Builder, moduleName: str, mockedMethods: Dict[str, object]) -> Builder:
-        """
-        Description
-        ---
-        This function sets up a mock for a complete module. 
-        All mocks must be the same 'level' meaning we cant mock a.b.fun and a.fun. We have to choose. 
-
-        We also  cant mock both a.b and a in the same submission currently without mocking the entirety of a.
-
-        :param moduleName: The name of the module that will be mocked.
-        :param mockedMethods: the map of the methods to mock in the module
-        """
-        if moduleName in self.moduleMocks:
-            for mockName, mockObject in mockedMethods.items():
-                self.moduleMocks[moduleName][mockName] = mockObject
-
-            return self
-
-        self.moduleMocks[moduleName] = mockedMethods
-
-        return self
-
-    def addMock(self: Builder, mockName: str, mockObject: SingleFunctionMock) -> Builder:
-        """
-        This needs to be updated once we decide how to do mocks
-        """
-        self.environment.mocks[mockName] = mockObject
 
         return self
 
@@ -254,17 +222,15 @@ class ExecutionEnvironmentBuilder():
 
         return self
 
-    def addImportHandler(self: Builder, importHandler: MetaPathFinder) -> Builder:
-        """
-        Description
-        ---
-        This adds an import handler to the environment
+    def setImplEnviroment(self: Builder, implEnvironmentBuilder: Type[ImplEnvironmentBuilder], builder: Callable[[ImplEnvironmentBuilder], ImplEnvironment]) -> Builder:
 
-        :param importHandler: the meta path finder
-        """
-        self.environment.import_loader.append(importHandler)
+        if self.environment.impl_environment is not None:
+            raise EnvironmentError("ImplEnvironment has already been defined! Should be None!")
 
+        self.environment.impl_environment = builder(implEnvironmentBuilder())
+        
         return self
+
 
     @staticmethod
     def _validate(environment: ExecutionEnvironment):
@@ -282,33 +248,8 @@ class ExecutionEnvironmentBuilder():
 
         # TODO - Validate requested features
 
-    def _processAndValidateModuleMocks(self):
-        try:
-            from StudentSubmissionImpl.Python.PythonModuleImportFactory import ModuleFinder
-        except ImportError:
-            return
 
-        for moduleName in self.moduleMocks.keys():
-            try:
-                module = import_module(moduleName)
-            except ImportError:
-                raise AttributeError(f"Failed to import {moduleName}!")
-
-            for methodName, mock in self.moduleMocks[moduleName].items():
-                splitName = methodName.split('.')
-
-                if not isinstance(mock, SingleFunctionMock):
-                    raise AttributeError(f"Invalid mock for {methodName}")
-
-                if mock.spy:
-                    mock.setSpyFunction(getattr(module, splitName[-1]))
-
-                self.environment.mocks[methodName] = None
-                setattr(module, splitName[-1], mock)
-
-            self.environment.import_loader.append(ModuleFinder(moduleName, module))
-
-    def build(self) -> ExecutionEnvironment:
+    def build(self) -> ExecutionEnvironment[ImplEnvironment]:
         """
         Description
         ---
@@ -318,8 +259,6 @@ class ExecutionEnvironmentBuilder():
         """
         self.environment.parameters = tuple(self.parameters)
         
-        self._processAndValidateModuleMocks()
-
         self._validate(self.environment)
         
         return self.environment

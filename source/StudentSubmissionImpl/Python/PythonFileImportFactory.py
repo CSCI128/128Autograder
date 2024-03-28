@@ -2,23 +2,30 @@ import os
 
 from importlib.machinery import ModuleSpec
 from types import ModuleType, CodeType
-from typing import Dict, Optional
-from importlib.abc import Loader, MetaPathFinder
+from typing import Dict, Optional, List
+from importlib.abc import Loader
 from importlib.util import spec_from_file_location
 
-class ModuleFinder(MetaPathFinder):
+from StudentSubmissionImpl.Python.AbstractPythonImportFactory import AbstractModuleFinder
+
+class ModuleFinder(AbstractModuleFinder):
     def __init__(self) -> None:
         self.knownModules: Dict[str, str] = {}
+        self.modulesToReload: List[str] = []
 
     def addModule(self, fullname, path):
         for mod in fullname.split('.'):
             self.knownModules[mod] = path
+            self.modulesToReload.append(mod)
 
     def find_spec(self, fullname, path, target=None):
         if fullname not in self.knownModules:
             return None
         
         return spec_from_file_location(fullname, self.knownModules[fullname], loader=ModuleLoader(self.knownModules[fullname]))
+    
+    def getModulesToReload(self) -> List[str]:
+        return self.modulesToReload
 
 
 class ModuleLoader(Loader):

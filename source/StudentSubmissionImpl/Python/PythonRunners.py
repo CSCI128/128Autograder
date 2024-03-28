@@ -1,3 +1,4 @@
+import sys
 from abc import abstractmethod
 from importlib import import_module
 from types import CodeType, ModuleType
@@ -26,13 +27,13 @@ class GenericPythonRunner(IRunner[CodeType]):
     def __init__(self):
         self.studentSubmission: Optional[CodeType] = None
         self.mocks: Optional[Dict[str, Optional[SingleFunctionMock]]] = None
-        self.parameters: Tuple[Any] = tuple()
+        self.parameters: Tuple[Any, ...] = tuple()
         self.setupCode = None
 
     def setSubmission(self, submission: CodeType):
         self.studentSubmission = submission
 
-    def setParameters(self, parameters: Tuple[Any]):
+    def setParameters(self, parameters: Tuple[Any, ...]):
         self.parameters = parameters
 
     def getParameters(self) -> Tuple[Any]:

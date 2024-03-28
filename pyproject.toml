@@ -7,7 +7,7 @@ maintainers = [
     { name = "Gregory Bell" }
 ]
 
-version = "2.1.6"
+version = "2.4.0"
 requires-python = ">=3.9.0"
 
 [tool.pyright]
@@ -25,7 +25,7 @@ concurrency = ["multiprocessing"]
 # Omit testing files, omit dynamic files, omit __init__.py
 # Doing it at the run level as it will that means they wont be run in the first place
 # Ignore build.py as its it is primarly covered by integration tests
-omit = ["sandbox/*", "test_code", "test_code.py", "setup_code", "tests/*", "*/student_submission", "__init__.py", "Build.py"]
+omit = ["sandbox/*", "testPrograms/*","test_code", "test_code.py", "setup_code", "tests/*", "*/student_submission", "__init__.py", "Build.py"]
 
 [tool.coverage.report]
 fail_under = 90

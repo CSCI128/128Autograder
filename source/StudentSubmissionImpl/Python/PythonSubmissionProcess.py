@@ -10,6 +10,7 @@ before attempting to even connect to the object.
 """
 
 from importlib.abc import MetaPathFinder
+from types import FunctionType
 from typing import Any, Dict, Optional, Tuple, List
 from Executors.Environment import ExecutionEnvironment, PossibleResults
 
@@ -25,6 +26,8 @@ from io import StringIO
 from Executors.common import MissingOutputDataException, detectFileSystemChanges, filterStdOut
 from StudentSubmissionImpl.Python.PythonRunners import GenericPythonRunner
 from TestingFramework.SingleFunctionMock import SingleFunctionMock
+from StudentSubmissionImpl.Python.PythonEnvironment import PythonEnvironment
+from StudentSubmissionImpl.Python.AbstractPythonImportFactory import AbstractModuleFinder
 
 dill.Pickler.dumps, dill.Pickler.loads = dill.dumps, dill.loads
 multiprocessing.reduction.dump = dill.dump
@@ -58,7 +61,7 @@ class StudentSubmissionProcess(multiprocessing.Process):
     flexibility required by the classes that will utilize it.
     """
 
-    def __init__(self, runner: GenericPythonRunner, executionDirectory: str, importHandlers: List[MetaPathFinder], timeout: int = 10):
+    def __init__(self, runner: GenericPythonRunner, executionDirectory: str, importHandlers: List[AbstractModuleFinder], timeout: int = 10):
         """
         This constructs a new student submission process with the name "Student Submission".
 
@@ -122,6 +125,17 @@ class StudentSubmissionProcess(multiprocessing.Process):
         for importHandler in self.importHandlers:
             sys.meta_path.insert(0, importHandler)
 
+            getModulesToReload: Optional[FunctionType] = getattr(importHandler, "getModulesToReload", None)
+            if getModulesToReload is None:
+                continue
+
+            mods = getModulesToReload()
+            for mod in mods:
+                if mod not in sys.modules:
+                    continue
+
+                del sys.modules[mod]
+
         sharedInput = shared_memory.SharedMemory(self.inputDataMemName)
         deserializedData = dill.loads(sharedInput.buf.tobytes())
         # Reformat the stdin so that we
@@ -130,7 +144,7 @@ class StudentSubmissionProcess(multiprocessing.Process):
         sys.stdout = StringIO()
 
     def _teardown(self, stdout: StringIO, exception: Optional[Exception],
-                  returnValue: Any, parameters: Tuple[Any], mocks: Optional[Dict[str, SingleFunctionMock]]) -> None:
+                  returnValue: Any, parameters: Tuple[Any], mocks: Optional[Dict[str, Optional[SingleFunctionMock]]]) -> None:
         """
         This function takes the results from the child process and serializes them.
         Then is stored in the shared memory object that the parent is able to access.
@@ -199,7 +213,7 @@ class RunnableStudentSubmission(ISubmissionProcess):
         self.timeoutOccurred: bool = False
         self.timeoutTime: int =  0
         
-    def setup(self, environment: ExecutionEnvironment, runner: GenericPythonRunner): # pyright: ignore[reportIncompatibleMethodOverride]
+    def setup(self, environment: ExecutionEnvironment[PythonEnvironment], runner: GenericPythonRunner): # pyright: ignore[reportIncompatibleMethodOverride]
         """
         Description
         ---
@@ -213,7 +227,9 @@ class RunnableStudentSubmission(ISubmissionProcess):
 
         """
         self.studentSubmissionProcess = \
-                StudentSubmissionProcess(runner, environment.SANDBOX_LOCATION, environment.import_loader, environment.timeout)
+                StudentSubmissionProcess(runner, environment.SANDBOX_LOCATION, 
+                                         environment.impl_environment.import_loader if environment.impl_environment is not None else [], 
+                                         environment.timeout)
 
         self.inputSharedMem = shared_memory.SharedMemory(create=True, size=SHARED_MEMORY_SIZE)
         self.outputSharedMem = shared_memory.SharedMemory(create=True, size=SHARED_MEMORY_SIZE)
