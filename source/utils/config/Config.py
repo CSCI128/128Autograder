@@ -26,6 +26,8 @@ class BuildConfiguration:
     """If we should build the student autograder"""
     build_gradescope: bool
     """If we should build the gradescope autograder"""
+    build_prairielearn: bool
+    """If we should build the prairielearn autograder"""
     data_files_source: str
     """The folder that contains the datafiles for use with the autograder"""
     starter_code_source: str
@@ -183,13 +185,14 @@ class AutograderConfigurationSchema(BaseSchema[AutograderConfiguration]):
                     }, None),
                 },
                 "build": {
-                    "use_starter_code": bool,
-                    "use_data_files": bool,
+                    Optional("use_starter_code", default=False): bool,
+                    Optional("use_data_files", default=False): bool,
                     Optional("allow_private", default=True): bool,
                     Optional("data_files_source", default=None): str,
                     Optional("starter_code_source", default=None): str,
-                    "build_student": bool,
-                    "build_gradescope": bool,
+                    Optional("build_student", default=False): bool,
+                    Optional("build_gradescope", default=False): bool,
+                    Optional("build_prairielearn", default=False): bool,
                     Optional("student_work_folder", default="student_work"): str,
                     Optional("private_tests_regex", default=r"^test_private_?\w*\.py$"): str,
                     Optional("public_tests_regex", default=r"^test_?\w*\.py$"): str,

@@ -16,7 +16,10 @@ class FilesEnum(Enum):
 
 class Build():
     IGNORE = ["__pycache__"]
-    GRADESCOPE_ROOT = ["setup.sh", "run_autograder"]
+    GRADESCOPE_ROOT = ["setup.sh", "run_autograder_gs"]
+    GRADESCOPE_NAME_MAP = {'run_autograder_gs': 'run_autograder'}
+
+    RENAMER = lambda map, x: map[x] if x in map.keys() else x
 
     def __init__(self, config: AutograderConfiguration, sourceRoot=os.getcwd(), binRoot="bin") -> None:
         self.config = config
@@ -213,7 +216,7 @@ class Build():
         os.makedirs(generationPath, exist_ok=True)
 
         for file in autograderFiles:
-            destPath = os.path.join(generationPath, file)
+            destPath = os.path.join(generationPath, Build.RENAMER(Build.GRADESCOPE_NAME_MAP, file))
 
             os.makedirs(os.path.dirname(generationPath), exist_ok=True)
             Build.copy(file, destPath)

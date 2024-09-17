@@ -49,5 +49,6 @@ semester=""
     build_student=true
 
     build_gradescope=true
+    build_prarielean=true
 
     student_work_folder="student_work"

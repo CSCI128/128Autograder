@@ -65,8 +65,6 @@ services:
       - "./tests/e2e/test_run_test_my_work/test_my_work_config.toml:/app/source/config.toml"
 
   test_run_with_prairie_learn:
-    profiles:
-      - skip
     build:
       dockerfile: run.dockerfile
     command:
