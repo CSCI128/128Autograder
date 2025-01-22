@@ -12,6 +12,8 @@ RUN python3 -m pip install --break-system-packages /tmp/source
 RUN mkdir -p /autograder/bin && \
     mkdir -p /autograder/submission && \
     mkdir -p /autograder/tests && \
-    mkdir -p /autograder/results
+    mkdir -p /autograder/results && \
+    mkdir -p /grade/results && \
+    mkdir -p /grade/data
 
 WORKDIR /autograder
