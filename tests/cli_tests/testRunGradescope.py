@@ -149,8 +149,6 @@ class TestGradescopeUtils(unittest.TestCase):
         self.assertEqual(10, self.autograderResults["score"])
 
     def testInvalidPreviousSubmission(self):
-        # This is a fix for the broken behavoir that we see if GS crashes
-
         self.metadata["previous_submissions"].append({
             "results": {}
         })
@@ -166,6 +164,59 @@ class TestGradescopeUtils(unittest.TestCase):
         self.gradescopeCLI.config.config.submission_limit = 3
         self.gradescopeCLI.config.config.take_highest = True
 
+
+        self.gradescopeCLI.gradescope_post_processing(self.autograderResults)
+
+        self.assertEqual(10, self.autograderResults["score"])
+
+    def testInvalidSubmissionInSubset(self):
+        self.metadata["previous_submissions"].append({
+            "results": {}
+        })
+
+        self.autograderResults["score"] = 10
+
+        self.writeMetadata()
+
+        self.gradescopeCLI.config.config.submission_limit = 1
+        self.gradescopeCLI.config.config.take_highest = True
+
+        self.gradescopeCLI.gradescope_post_processing(self.autograderResults)
+
+        self.assertEqual(10, self.autograderResults["score"])
+
+    def testMissingScore(self):
+        del self.autograderResults["score"]
+
+        self.writeMetadata()
+
+        self.gradescopeCLI.config.config.submission_limit = 1
+        self.gradescopeCLI.config.config.take_highest = True
+
+        self.gradescopeCLI.gradescope_post_processing(self.autograderResults)
+
+        self.assertIn("Autograder run was INVALID", self.autograderResults["output"])
+
+    def testMissingMetadata(self):
+        self.gradescopeCLI.config.config.submission_limit = 1
+        self.gradescopeCLI.config.config.take_highest = True
+
+        self.gradescopeCLI.gradescope_post_processing(self.autograderResults)
+
+        self.assertIn("Autograder run was INVALID", self.autograderResults["output"])
+
+    def testIgnoreFailedRuns(self):
+        for _ in range(100):
+            self.metadata["previous_submissions"].append({
+                "results": {}
+            })
+
+        self.autograderResults["score"] = 10
+
+        self.writeMetadata()
+
+        self.gradescopeCLI.config.config.submission_limit = 1
+        self.gradescopeCLI.config.config.take_highest = True
 
         self.gradescopeCLI.gradescope_post_processing(self.autograderResults)
 

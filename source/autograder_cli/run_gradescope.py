@@ -17,10 +17,15 @@ class GradescopeAutograderCLI(AutograderCLITool):
 
     def gradescope_post_processing(self, autograderResults: Dict):
         if not os.path.exists(self.arguments.metadata_path):
+            autograderResults['output'] = "Autograder run was INVALID. Please resubmit. This will not count against your submission limit"
             return
 
         if "tests" not in autograderResults or len(autograderResults["tests"]) == 0:
             autograderResults['output'] = "No tests were run. If you are a student seeing this message, please notify course staff."
+            return
+
+        if "score" not in autograderResults:
+            autograderResults['output'] = "Autograder run was INVALID. Please resubmit. This will not count against your submission limit"
             return
 
         # for now, we aren't implementing any new features for this
@@ -34,25 +39,25 @@ class GradescopeAutograderCLI(AutograderCLITool):
 
         previousSubmissions: List[Dict] = submissionMetadata['previous_submissions']
 
-        autograderResults['output'] = f"Submission {len(previousSubmissions) + 1} of {submissionLimit}.\n"
-
+        # this grabs only the valid previous submissions - must have a result, and a score
         validSubmissions: List[Dict] = \
             [previousSubmissionMetadata['results']
              for previousSubmissionMetadata in previousSubmissions
-             if 'results' in previousSubmissionMetadata.keys()
+             if 'results' in previousSubmissionMetadata.keys() and "score" in previousSubmissionMetadata["results"].keys()
              ]
+
+        autograderResults['output'] = f"Submission {len(validSubmissions) + 1} of {submissionLimit}.\n"
 
         validSubmissions.append(autograderResults)
 
         # submission limit exceeded
-        if len(validSubmissions) > submissionLimit:
+        if self.config.config.enforce_submission_limit and len(validSubmissions) > submissionLimit:
             autograderResults['output'] += f"Submission limit exceeded.\n" \
                                            f"Autograder has been run on your code so you can see how you did\n" \
                                            f"but, your score will be highest of your valid submissions.\n"
             validSubmissions = validSubmissions[:submissionLimit]
             # We should take the highest valid submission
             takeHighest = True
-        # TODO drop all un-scored submissions
 
         # sorts in descending order
         validSubmissions.sort(reverse=True, key=lambda submission: submission['score'] if 'score' in submission else 0)
