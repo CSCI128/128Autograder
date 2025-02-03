@@ -148,3 +148,10 @@ class TestExecutor(unittest.TestCase):
             exception = e
 
         self.assertIsNone(exception)
+
+    def testSandboxCreatedAndCleanedUp(self):
+        self.assertFalse(os.path.exists(self.environment.sandbox_location))
+        Executor.setup(self.environment, self.runner, self.config)
+        self.assertTrue(os.path.exists(self.environment.sandbox_location))
+        Executor.cleanup(self.environment)
+        self.assertFalse(os.path.exists(self.environment.sandbox_location))
