@@ -71,6 +71,14 @@ class GradescopeAutograderCLI(AutograderCLITool):
             autograderResults['output'] += f"Score has been set to a floor of 0 to ensure no negative scores.\n"
             autograderResults['score'] = 0
 
+        max_score = self.config.config.max_score if self.config.config.allow_extra_credit else self.config.config.perfect_score
+
+        if autograderResults["score"] > max_score:
+            autograderResults["output"] += f"Score has been capped to {max_score}.\n"
+            autograderResults["score"] = max_score
+
+
+
     def configure_options(self):  # pragma: no cover
         self.parser.add_argument("--results-location", default="/autograder/results/results.json",
                                  help="The location for the autograder JSON results")
