@@ -69,6 +69,19 @@ services:
       - "./tests/e2e/test_run_test_my_work/submission:/app/submission"
       - "./tests/e2e/test_run_test_my_work/test_my_work_config.toml:/app/source/config.toml"
 
+  test_run_local_nested:
+    build:
+      dockerfile: docker/generic.dockerfile
+      context: .
+    entrypoint: ["sh", "/app/entrypoint.sh"]
+    working_dir: /app/source
+    volumes:
+      - "./tests/e2e/test_run_local_in_nested_with_data/entrypoint.sh:/app/entrypoint.sh"
+      - "./tests/e2e/test_run_local_in_nested_with_data/results:/autograder/results"
+      - "./tests/e2e/test_run_local_in_nested_with_data/student_tests:/app/source/student_tests"
+      - "./tests/e2e/test_run_local_in_nested_with_data/submission:/app/submission"
+      - "./tests/e2e/test_run_local_in_nested_with_data/test_my_work_config.toml:/app/source/config.toml"
+
   test_run_with_prairie_learn:
     build:
       dockerfile: docker/generic.dockerfile

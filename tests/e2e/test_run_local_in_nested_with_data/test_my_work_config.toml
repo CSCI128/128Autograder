@@ -1,0 +1,31 @@
+assignment_name="IntegrationTests"
+semester="S24"
+
+[config]
+    autograder_version="5.0.0"
+    impl_to_use = "Python"
+
+    test_directory = "student_tests"
+
+    enforce_submission_limit=true
+    submission_limit=3
+
+    take_highest=true
+
+    allow_extra_credit=false
+    perfect_score=10
+    max_score=10
+
+[config.python]
+
+
+[build]
+    # Things that need to be considered when building
+    use_starter_code=false
+    use_data_files=true
+    data_files_source="student_tests/data"
+
+    allow_private=true
+
+    build_student=true
+    build_gradescope=false
