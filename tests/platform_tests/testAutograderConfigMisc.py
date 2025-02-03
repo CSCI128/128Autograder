@@ -89,10 +89,12 @@ class TestAutograderConfigurationBuilder(unittest.TestCase):
                 .fromTOML(file=self.DATA_FILE) \
                 .setStudentSubmissionDirectory(expectedDir) \
                 .setTestDirectory(expectedDir) \
+                .setAutograderRoot(expectedDir) \
                 .build()
 
         self.assertEqual(expectedDir, actual.config["student_submission_directory"])
         self.assertEqual(expectedDir, actual.config["test_directory"])
+        self.assertEqual(expectedDir, actual.config["autograder_root"])
 
     def testNoneDoesntModifyConfig(self):
         with open(self.DATA_FILE, 'w') as w:
