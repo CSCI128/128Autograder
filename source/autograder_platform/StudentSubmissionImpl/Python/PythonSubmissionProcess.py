@@ -246,7 +246,7 @@ class RunnableStudentSubmission(ISubmissionProcess):
 
         """
         self.studentSubmissionProcess = \
-            StudentSubmissionProcess(runner, environment.SANDBOX_LOCATION,
+            StudentSubmissionProcess(runner, environment.sandbox_location,
                                      environment.impl_environment.import_loader,
                                      environment.timeout)
 
@@ -334,7 +334,7 @@ class RunnableStudentSubmission(ISubmissionProcess):
                 },
             }
 
-        self.outputData["file_out"] = detectFileSystemChanges(environment.files.values(), environment.SANDBOX_LOCATION)
+        self.outputData["file_out"] = detectFileSystemChanges(environment.files.values(), environment.sandbox_location)
         self.outputData["stdout"] = filterStdOut(self.outputData["stdout"])
 
         if "impl_results" in self.outputData:

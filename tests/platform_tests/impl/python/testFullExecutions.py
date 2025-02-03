@@ -48,8 +48,8 @@ class TestFullExecutions(unittest.TestCase):
         if os.path.exists(self.DATA_DIRECTORY):
             shutil.rmtree(self.DATA_DIRECTORY)
 
-        if os.path.exists(ExecutionEnvironment.SANDBOX_LOCATION):
-            shutil.rmtree(ExecutionEnvironment.SANDBOX_LOCATION)
+        if os.path.exists(ExecutionEnvironment.sandbox_location):
+            shutil.rmtree(ExecutionEnvironment.sandbox_location)
 
         if os.path.exists(self.PYTHON_PROGRAM_DIRECTORY):
             shutil.rmtree(self.PYTHON_PROGRAM_DIRECTORY)

@@ -81,7 +81,7 @@ SubmissionProcessFactory.register(MockSubmission, MockSubmissionProcess)
 class TestExecutor(unittest.TestCase):
     TEST_FILE_ROOT = "./test_data"
     TEST_FILE_LOCATION = os.path.join(TEST_FILE_ROOT, "sub", "test.txt")
-    OUTPUT_FILE_LOCATION = os.path.join(ExecutionEnvironment.SANDBOX_LOCATION,
+    OUTPUT_FILE_LOCATION = os.path.join(ExecutionEnvironment.sandbox_location,
                                         os.path.basename(TEST_FILE_LOCATION))
 
     def setUp(self) -> None:
@@ -93,8 +93,8 @@ class TestExecutor(unittest.TestCase):
         self.config = MagicMock()
 
     def tearDown(self) -> None:
-        if os.path.exists(self.environment.SANDBOX_LOCATION):
-            shutil.rmtree(self.environment.SANDBOX_LOCATION)
+        if os.path.exists(self.environment.sandbox_location):
+            shutil.rmtree(self.environment.sandbox_location)
 
         if os.path.exists(self.TEST_FILE_ROOT):
             shutil.rmtree(self.TEST_FILE_ROOT)
@@ -102,7 +102,7 @@ class TestExecutor(unittest.TestCase):
     def testCreateSandbox(self):
         Executor.setup(self.environment, self.runner, self.config)
 
-        self.assertIn(os.path.basename(self.environment.SANDBOX_LOCATION), os.listdir("."))
+        self.assertIn(os.path.basename(self.environment.sandbox_location), os.listdir("."))
 
     def testMoveFiles(self):
         self.environment.files = {
@@ -114,12 +114,12 @@ class TestExecutor(unittest.TestCase):
 
         Executor.setup(self.environment, self.runner, self.config)
 
-        self.assertIn(os.path.basename(self.TEST_FILE_LOCATION), os.listdir(self.environment.SANDBOX_LOCATION))
+        self.assertIn(os.path.basename(self.TEST_FILE_LOCATION), os.listdir(self.environment.sandbox_location))
 
     def testMoveFilesWithAlais(self):
         self.environment.files = {
             self.TEST_FILE_LOCATION:
-                os.path.join(self.environment.SANDBOX_LOCATION, "this_is_alais.txt")
+                os.path.join(self.environment.sandbox_location, "this_is_alais.txt")
         }
 
         with open(self.TEST_FILE_LOCATION, 'w') as w:
@@ -127,7 +127,7 @@ class TestExecutor(unittest.TestCase):
 
         Executor.setup(self.environment, self.runner, self.config)
 
-        self.assertIn("this_is_alais.txt", os.listdir(self.environment.SANDBOX_LOCATION))
+        self.assertIn("this_is_alais.txt", os.listdir(self.environment.sandbox_location))
 
     def testExceptionRaised(self):
 
@@ -148,3 +148,18 @@ class TestExecutor(unittest.TestCase):
             exception = e
 
         self.assertIsNone(exception)
+
+    def testSandboxCreatedAndCleanedUp(self):
+        self.assertFalse(os.path.exists(self.environment.sandbox_location))
+        Executor.setup(self.environment, self.runner, self.config)
+        self.assertTrue(os.path.exists(self.environment.sandbox_location))
+        Executor.cleanup(self.environment)
+        self.assertFalse(os.path.exists(self.environment.sandbox_location))
+
+    def testForceSandboxError(self):
+        for _ in range(100):
+            self.assertFalse(os.path.exists(self.environment.sandbox_location))
+            Executor.setup(self.environment, self.runner, self.config)
+            self.assertTrue(os.path.exists(self.environment.sandbox_location))
+            Executor.cleanup(self.environment)
+            self.assertFalse(os.path.exists(self.environment.sandbox_location))
