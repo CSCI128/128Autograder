@@ -46,7 +46,11 @@ class GradescopeAutograderCLI(AutograderCLITool):
              if 'results' in previousSubmissionMetadata.keys() and "score" in previousSubmissionMetadata["results"].keys()
              ]
 
-        autograderResults['output'] = f"Submission {len(validSubmissions) + 1} of {submissionLimit}.\n"
+
+        if self.config.config.enforce_submission_limit:
+            autograderResults['output'] = f"Submission {len(validSubmissions) + 1} of {submissionLimit}.\n"
+        else:
+            autograderResults['output'] = ""
 
         validSubmissions.append(autograderResults)
 
