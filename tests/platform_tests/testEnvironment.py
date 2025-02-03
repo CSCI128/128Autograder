@@ -6,7 +6,7 @@ from autograder_platform.Executors.Environment import ExecutionEnvironment, Exec
 
 
 class TestEnvironmentBuilder(unittest.TestCase):
-    # For builds, we are only testing the non-trival functions and the non trivial cases
+    # For builds, we are only testing the non-trivial functions and the non-trivial cases
     # Its just not really valuable to have assertions on one line functions imo
     DATA_ROOT = "./test_data"
 

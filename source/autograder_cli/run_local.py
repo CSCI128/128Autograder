@@ -214,7 +214,6 @@ class LocalAutograderCLI(AutograderCLITool):
         return autograders[selection - 1]
 
     def configure_options(self):  # pragma: no cover
-        # currently no extra options
         self.parser.add_argument("--submission-directory", default="student_work",
                                  help="The location for the student's submission relative to the submission root")
         self.parser.add_argument("--test-directory", default="student_tests",
@@ -265,6 +264,7 @@ class LocalAutograderCLI(AutograderCLITool):
 
         self.config = AutograderConfigurationBuilder() \
             .fromTOML(self.config_location) \
+            .setAutograderRoot(root_directory) \
             .setStudentSubmissionDirectory(os.path.join(root_directory, self.arguments.submission_directory)) \
             .setTestDirectory(os.path.join(root_directory, self.arguments.test_directory)) \
             .build()
@@ -290,7 +290,7 @@ tool = LocalAutograderCLI().run
 if __name__ == "__main__":
     res = tool()
 
-    # this is the same behavior as the script and isnt actually documented well!
+    # this is the same behavior as the script and isn't actually documented well!
     # thanks python
     exit(res)
 

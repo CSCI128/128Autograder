@@ -133,6 +133,8 @@ class AutograderConfiguration:
     """The assignment name. IE: `ConstructionSite`"""
     semester: str
     """The semester that this assignment is being offered. IE: F99 -> Fall 1999"""
+    autograder_root: str
+    """The autograder's root directory where the config.toml file is located"""
     config: BasicConfiguration
     """The basic settings for the autograder. See :ref:`BasicConfiguration` for options."""
     build: BuildConfiguration
@@ -148,7 +150,7 @@ class AutograderConfigurationSchema(BaseSchema[AutograderConfiguration]):
     This class is able to validate and build a config. 
     Configs are expected to be provided as a dictionary; hence that agnostic nature of the schema.
 
-    This class builds to :ref:`AutograderConfiguration` for easy typing.
+    This class builds to: ref:`AutograderConfiguration` for easy typing.
     """
     IMPL_SOURCE = "StudentSubmissionImpl"
 
@@ -165,6 +167,7 @@ class AutograderConfigurationSchema(BaseSchema[AutograderConfiguration]):
             {
                 "assignment_name": And(str, Regex(r"^(\w+-?)+$")),
                 "semester": And(str, Regex(r"^(F|S|SUM)\d{2}$")),
+                Optional("autograder_root", default="."): And(os.path.exists, os.path.isdir, lambda path: "config.toml" in os.listdir(path)),
                 "config": {
                     "impl_to_use": And(str, AutograderConfigurationSchema.validateImplSource),
                     Optional("student_submission_directory", default="."): And(str, os.path.exists, os.path.isdir),
@@ -322,12 +325,14 @@ class AutograderConfigurationBuilder(Generic[T]):
         return self
 
     def setTestDirectory(self: Builder, testDirectory: str) -> Builder:
-        if testDirectory is None:
-            return self
-
         self._createKeyIfDoesntExist(self.data, "config")
 
         self.data["config"]["test_directory"] = testDirectory
+
+        return self
+
+    def setAutograderRoot(self: Builder, autograderDirectory: str) -> Builder:
+        self.data["autograder_root"] = autograderDirectory
 
         return self
 

@@ -1,3 +1,5 @@
+import os
+import shutil
 import unittest
 
 from autograder_platform.config.Config import AutograderConfigurationSchema, InvalidConfigException
@@ -120,7 +122,7 @@ class TestAutograderConfigurationSchema(unittest.TestCase):
         actual = schema.build(data)
 
         if actual.config.c is None:
-            self.fail("config.python was None when it shouldn't be!")
+            self.fail("config.c was None when it shouldn't be!")
 
 
         self.assertIsNotNone(actual.config.c.use_makefile)
@@ -171,3 +173,58 @@ class TestAutograderConfigurationSchema(unittest.TestCase):
         res = AutograderConfigurationSchema.validateImplSource("DNE")
 
         self.assertFalse(res)
+
+    def testAutograderRootDNE(self):
+        schema = self.createAutograderConfigurationSchema()
+
+        newDir = "autograder_root"
+
+        self.configFile["autograder_root"] = newDir
+
+        with self.assertRaises(InvalidConfigException):
+            schema.validate(self.configFile)
+
+    def testAutograderRootNoConfig(self):
+        schema = self.createAutograderConfigurationSchema()
+
+        newDir = "autograder_root"
+
+        if os.path.exists(newDir):
+            shutil.rmtree(newDir)
+
+        os.mkdir(newDir)
+
+        self.configFile["autograder_root"] = newDir
+
+        with self.assertRaises(InvalidConfigException):
+            schema.validate(self.configFile)
+
+        if os.path.exists(newDir):
+            shutil.rmtree(newDir)
+
+    def testAutograderRootValidWithConfig(self):
+        schema = self.createAutograderConfigurationSchema()
+
+        newDir = "autograder_root"
+
+        if os.path.exists(newDir):
+            shutil.rmtree(newDir)
+
+        os.mkdir(newDir)
+
+        with open(os.path.join(newDir, "config.toml"), 'w') as w:
+            w.write("\n")
+
+        self.configFile["autograder_root"] = newDir
+
+        actual = schema.validate(self.configFile)
+
+
+        if os.path.exists(newDir):
+            shutil.rmtree(newDir)
+
+        self.assertEqual(newDir, actual["autograder_root"])
+
+
+
+
