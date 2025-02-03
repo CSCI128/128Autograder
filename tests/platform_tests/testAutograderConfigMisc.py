@@ -105,10 +105,10 @@ class TestAutograderConfigurationBuilder(unittest.TestCase):
             )
 
         actual = \
-            AutograderConfigurationBuilder(configSchema=MockSchema()) \
+            (AutograderConfigurationBuilder(configSchema=MockSchema()) \
                 .fromTOML(file=self.DATA_FILE) \
                 .setStudentSubmissionDirectory(None) \
-                .setTestDirectory(None).build()  # type: ignore
+                .build())
 
         self.assertNotIn("test_directory", actual.config)
         self.assertNotIn("student_submission_directory", actual.config)

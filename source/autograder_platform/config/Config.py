@@ -325,9 +325,6 @@ class AutograderConfigurationBuilder(Generic[T]):
         return self
 
     def setTestDirectory(self: Builder, testDirectory: str) -> Builder:
-        if testDirectory is None:
-            return self
-
         self._createKeyIfDoesntExist(self.data, "config")
 
         self.data["config"]["test_directory"] = testDirectory
@@ -335,9 +332,6 @@ class AutograderConfigurationBuilder(Generic[T]):
         return self
 
     def setAutograderRoot(self: Builder, autograderDirectory: str) -> Builder:
-        if autograderDirectory is None:
-            return self
-
         self.data["autograder_root"] = autograderDirectory
 
         return self
