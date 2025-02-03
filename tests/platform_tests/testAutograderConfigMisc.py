@@ -12,6 +12,7 @@ from autograder_platform.config.common import BaseSchema
 class MockConfiguration:
     string_property: str
     int_property: int
+    autograder_root: str = ""
     list_of_tables: List[Dict[str, str]] = field(default_factory=list)
     config: Dict = field(default_factory=dict)
 
@@ -94,7 +95,7 @@ class TestAutograderConfigurationBuilder(unittest.TestCase):
 
         self.assertEqual(expectedDir, actual.config["student_submission_directory"])
         self.assertEqual(expectedDir, actual.config["test_directory"])
-        self.assertEqual(expectedDir, actual.config["autograder_root"])
+        self.assertEqual(expectedDir, actual.autograder_root)
 
     def testNoneDoesntModifyConfig(self):
         with open(self.DATA_FILE, 'w') as w:
