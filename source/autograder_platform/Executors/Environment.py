@@ -1,4 +1,5 @@
 import os
+import tempfile
 from typing import Callable, Generic, List, Dict, Optional, Tuple, Type, TypeVar, Union, Any
 
 import dataclasses
@@ -111,7 +112,8 @@ class ExecutionEnvironment(Generic[ImplEnvironment, ImplResults]):
     is provided and what 'pre-run' tasks are completed (ie: creating a class instance).
     This class does not define the actual executor.
     """
-
+    sandbox_location: str = "./sandbox"
+    """The location for the sandbox folder"""
     stdin: List[str] = dataclasses.field(default_factory=list)
     """If stdin will be passed to the student's submission"""
     files: Dict[str, str] = dataclasses.field(default_factory=dict)
@@ -126,9 +128,6 @@ class ExecutionEnvironment(Generic[ImplEnvironment, ImplResults]):
     This dict contains the data that was generated from the student's submission. This should not be accessed
     directly, rather, use getOrAssert method
     """
-
-    SANDBOX_LOCATION: str = "./sandbox"
-
 
 def getResults(environment: ExecutionEnvironment[ImplEnvironment, ImplResults]) -> Results[ImplResults]:
     """
@@ -160,7 +159,11 @@ class ExecutionEnvironmentBuilder(Generic[ImplEnvironment, ImplResults]):
     """
 
     def __init__(self):
-        self.environment = ExecutionEnvironment[ImplEnvironment, ImplResults]()
+        # windows doesn't clean out temp files by default (for compatibility reasons),
+        # so we are going to be good boys and girls, and delete the *contents* of this folder at the end of a run.
+        # however, as it is a different folder each time, we are going to silently fail.
+        self.tempLocation = tempfile.mkdtemp(prefix="autograder_")
+        self.environment = ExecutionEnvironment[ImplEnvironment, ImplResults](sandbox_location=self.tempLocation)
         self.dataRoot = "."
 
     def setDataRoot(self: Builder, dataRoot: str) -> Builder:
@@ -213,7 +216,7 @@ class ExecutionEnvironmentBuilder(Generic[ImplEnvironment, ImplResults]):
             fileSrc = fileSrc[2:]
 
         fileSrc = os.path.join(self.dataRoot, fileSrc)
-        fileDest = os.path.join(self.environment.SANDBOX_LOCATION, fileDest)
+        fileDest = os.path.join(self.environment.sandbox_location, fileDest)
 
         self.environment.files[fileSrc] = fileDest
 
