@@ -563,4 +563,3 @@ class TestPythonSubmissionProcess(unittest.TestCase):
 
         with self.assertRaises(MissingOutputDataException):
             raise results.exception
-

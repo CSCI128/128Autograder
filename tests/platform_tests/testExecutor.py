@@ -155,3 +155,11 @@ class TestExecutor(unittest.TestCase):
         self.assertTrue(os.path.exists(self.environment.sandbox_location))
         Executor.cleanup(self.environment)
         self.assertFalse(os.path.exists(self.environment.sandbox_location))
+
+    def testForceSandboxError(self):
+        for _ in range(100):
+            self.assertFalse(os.path.exists(self.environment.sandbox_location))
+            Executor.setup(self.environment, self.runner, self.config)
+            self.assertTrue(os.path.exists(self.environment.sandbox_location))
+            Executor.cleanup(self.environment)
+            self.assertFalse(os.path.exists(self.environment.sandbox_location))
