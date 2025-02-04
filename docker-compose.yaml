@@ -27,6 +27,20 @@ services:
       - "./tests/e2e/test_requirements_in_submission/submission_metadata.json:/autograder/submission_metadata.json"
       - "./tests/e2e/integration_config.toml:/autograder/source/config.toml"
 
+  test_metadata_attack:
+    build:
+      dockerfile: docker/generic.dockerfile
+      context: .
+    entrypoint:
+      - run_gradescope
+    working_dir: /autograder/source
+    volumes:
+      - "./tests/e2e/test_metadata_attack/results:/autograder/results"
+      - "./tests/e2e/test_metadata_attack/student_tests:/autograder/source/student_tests"
+      - "./tests/e2e/test_metadata_attack/submission:/autograder/submission"
+      - "./tests/e2e/test_metadata_attack/submission_metadata.json:/autograder/submission_metadata.json"
+      - "./tests/e2e/integration_config.toml:/autograder/source/config.toml"
+
   test_data_file_in_submission:
     build:
       dockerfile: docker/generic.dockerfile

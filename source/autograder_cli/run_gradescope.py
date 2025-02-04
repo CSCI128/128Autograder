@@ -1,3 +1,4 @@
+import hashlib
 import json
 import os
 from typing import Dict, List
@@ -15,7 +16,7 @@ class GradescopeAutograderCLI(AutograderCLITool):
     def __init__(self):
         super().__init__("Gradescope")
 
-    def gradescope_post_processing(self, autograderResults: Dict):
+    def gradescope_post_processing(self, autograderResults: Dict, acceptable_hash: str):
         if not os.path.exists(self.arguments.metadata_path):
             autograderResults['output'] = "Autograder run was INVALID. Please resubmit. This will not count against your submission limit"
             return
@@ -34,6 +35,11 @@ class GradescopeAutograderCLI(AutograderCLITool):
 
         # Enforce submission limit
         submissionMetadata: Dict = {}
+
+        if self.read_hash(self.arguments.metadata_path) != acceptable_hash:
+            autograderResults['output'] = "Autograder run was INVALID. Please resubmit. This will not count against your submission limit"
+            return
+
         with open(self.arguments.metadata_path, 'r') as submissionMetadataIn:
             submissionMetadata = json.load(submissionMetadataIn)
 
@@ -86,10 +92,19 @@ class GradescopeAutograderCLI(AutograderCLITool):
     def configure_options(self):  # pragma: no cover
         self.parser.add_argument("--results-location", default="/autograder/results/results.json",
                                  help="The location for the autograder JSON results")
-        self.parser.add_argument("--metadata-path", default="submission_metadata.json",
+        self.parser.add_argument("--metadata-path", default="/autograder/submission_metadata.json",
                                  help="The location for the submission metadata JSON")
         self.parser.add_argument("--submission-directory", default="/autograder/submission",
                                  help="The directory where the student's submission is located")
+
+
+    def read_hash(self, metadata_path):
+        if not os.path.exists(metadata_path):
+            return False
+
+        with open(metadata_path, 'rb') as rb:
+            fileBytes = rb.read()
+        return hashlib.md5(fileBytes, usedforsecurity=False).hexdigest()
 
     def set_config_arguments(self, configBuilder: AutograderConfigurationBuilder[AutograderConfiguration]):  # pragma: no cover
         if self.arguments is None:
@@ -107,11 +122,13 @@ class GradescopeAutograderCLI(AutograderCLITool):
 
         self.discover_tests()
 
+        acceptable_hash = self.read_hash(self.arguments.metadata_path)
+
         with open(self.arguments.results_location, 'w') as w:
             testRunner = JSONTestRunner(visibility='visible', stream=w,
                                         result_builder=gradescopeResultBuilder,
                                         result_finalizer=gradescopeResultFinalizer,
-                                        post_processor=lambda results: self.gradescope_post_processing(results))
+                                        post_processor=lambda results: self.gradescope_post_processing(results, acceptable_hash))
 
             res = testRunner.run(self.tests)
 

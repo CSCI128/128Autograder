@@ -44,27 +44,29 @@ class TestGradescopeUtils(unittest.TestCase):
         with open(self.METADATA_PATH, 'w') as w:
             json.dump(self.metadata, w)  # type: ignore
 
+        return self.gradescopeCLI.read_hash(self.METADATA_PATH)
+
     def testNoPriorSubmissions(self):
-        self.writeMetadata()
+        acceptable_hash = self.writeMetadata()
 
         self.autograderResults["score"] = 10
 
         self.gradescopeCLI.config.config.submission_limit = 3
         self.gradescopeCLI.config.config.take_highest = True
 
-        self.gradescopeCLI.gradescope_post_processing(self.autograderResults)
+        self.gradescopeCLI.gradescope_post_processing(self.autograderResults, acceptable_hash)
 
         self.assertEqual(10, self.autograderResults["score"])
 
     def testNegativeScore(self):
-        self.writeMetadata()
+        acceptable_hash = self.writeMetadata()
 
         self.autograderResults["score"] = -1
 
         self.gradescopeCLI.config.config.submission_limit = 3
         self.gradescopeCLI.config.config.take_highest = True
 
-        self.gradescopeCLI.gradescope_post_processing(self.autograderResults)
+        self.gradescopeCLI.gradescope_post_processing(self.autograderResults, acceptable_hash)
 
         self.assertEqual(0, self.autograderResults["score"])
 
@@ -75,7 +77,7 @@ class TestGradescopeUtils(unittest.TestCase):
         self.gradescopeCLI.config.config.submission_limit = 3
         self.gradescopeCLI.config.config.take_highest = True
 
-        self.gradescopeCLI.gradescope_post_processing(self.autograderResults)
+        self.gradescopeCLI.gradescope_post_processing(self.autograderResults, "")
 
         self.assertEqual(10, self.autograderResults["score"])
 
@@ -87,13 +89,13 @@ class TestGradescopeUtils(unittest.TestCase):
 
         })
 
-        self.writeMetadata()
+        acceptable_hash = self.writeMetadata()
 
         self.gradescopeCLI.config.config.submission_limit = 1000
         self.gradescopeCLI.config.config.take_highest = True
 
 
-        self.gradescopeCLI.gradescope_post_processing(self.autograderResults)
+        self.gradescopeCLI.gradescope_post_processing(self.autograderResults, acceptable_hash)
 
         self.assertEqual(10, self.autograderResults["score"])
 
@@ -118,13 +120,13 @@ class TestGradescopeUtils(unittest.TestCase):
 
         self.autograderResults["score"] = 10
 
-        self.writeMetadata()
+        acceptable_hash = self.writeMetadata()
 
         self.gradescopeCLI.config.config.submission_limit = 3
         self.gradescopeCLI.config.config.take_highest = True
 
 
-        self.gradescopeCLI.gradescope_post_processing(self.autograderResults)
+        self.gradescopeCLI.gradescope_post_processing(self.autograderResults, acceptable_hash)
 
         self.assertEqual(9.5, self.autograderResults["score"])
 
@@ -143,13 +145,13 @@ class TestGradescopeUtils(unittest.TestCase):
 
         self.autograderResults["score"] = 10
 
-        self.writeMetadata()
+        acceptable_hash = self.writeMetadata()
 
         self.gradescopeCLI.config.config.submission_limit = 3
         self.gradescopeCLI.config.config.take_highest = True
 
 
-        self.gradescopeCLI.gradescope_post_processing(self.autograderResults)
+        self.gradescopeCLI.gradescope_post_processing(self.autograderResults, acceptable_hash)
 
         self.assertEqual(10, self.autograderResults["score"])
 
@@ -164,13 +166,13 @@ class TestGradescopeUtils(unittest.TestCase):
 
         self.autograderResults["score"] = 10
 
-        self.writeMetadata()
+        acceptable_hash = self.writeMetadata()
 
         self.gradescopeCLI.config.config.submission_limit = 3
         self.gradescopeCLI.config.config.take_highest = True
 
 
-        self.gradescopeCLI.gradescope_post_processing(self.autograderResults)
+        self.gradescopeCLI.gradescope_post_processing(self.autograderResults, acceptable_hash)
 
         self.assertEqual(10, self.autograderResults["score"])
 
@@ -181,24 +183,24 @@ class TestGradescopeUtils(unittest.TestCase):
 
         self.autograderResults["score"] = 10
 
-        self.writeMetadata()
+        acceptable_hash = self.writeMetadata()
 
         self.gradescopeCLI.config.config.submission_limit = 1
         self.gradescopeCLI.config.config.take_highest = True
 
-        self.gradescopeCLI.gradescope_post_processing(self.autograderResults)
+        self.gradescopeCLI.gradescope_post_processing(self.autograderResults, acceptable_hash)
 
         self.assertEqual(10, self.autograderResults["score"])
 
     def testMissingScore(self):
         del self.autograderResults["score"]
 
-        self.writeMetadata()
+        acceptable_hash = self.writeMetadata()
 
         self.gradescopeCLI.config.config.submission_limit = 1
         self.gradescopeCLI.config.config.take_highest = True
 
-        self.gradescopeCLI.gradescope_post_processing(self.autograderResults)
+        self.gradescopeCLI.gradescope_post_processing(self.autograderResults, acceptable_hash)
 
         self.assertIn("Autograder run was INVALID", self.autograderResults["output"])
 
@@ -206,7 +208,7 @@ class TestGradescopeUtils(unittest.TestCase):
         self.gradescopeCLI.config.config.submission_limit = 1
         self.gradescopeCLI.config.config.take_highest = True
 
-        self.gradescopeCLI.gradescope_post_processing(self.autograderResults)
+        self.gradescopeCLI.gradescope_post_processing(self.autograderResults, "")
 
         self.assertIn("Autograder run was INVALID", self.autograderResults["output"])
 
@@ -218,12 +220,12 @@ class TestGradescopeUtils(unittest.TestCase):
 
         self.autograderResults["score"] = 10
 
-        self.writeMetadata()
+        acceptable_hash = self.writeMetadata()
 
         self.gradescopeCLI.config.config.submission_limit = 1
         self.gradescopeCLI.config.config.take_highest = True
 
-        self.gradescopeCLI.gradescope_post_processing(self.autograderResults)
+        self.gradescopeCLI.gradescope_post_processing(self.autograderResults, acceptable_hash)
 
         self.assertEqual(10, self.autograderResults["score"])
 
@@ -237,14 +239,14 @@ class TestGradescopeUtils(unittest.TestCase):
 
         self.autograderResults["score"] = 0
 
-        self.writeMetadata()
+        acceptable_hash = self.writeMetadata()
 
         self.gradescopeCLI.config.config.submission_limit = 1
         self.gradescopeCLI.config.config.enforce_submission_limit = False
         self.gradescopeCLI.config.config.take_highest = True
         self.gradescopeCLI.config.config.perfect_score = 100
 
-        self.gradescopeCLI.gradescope_post_processing(self.autograderResults)
+        self.gradescopeCLI.gradescope_post_processing(self.autograderResults, acceptable_hash)
 
         self.assertEqual(100, self.autograderResults["score"])
 
@@ -256,48 +258,49 @@ class TestGradescopeUtils(unittest.TestCase):
         })
 
         self.autograderResults["score"] = 0
-        self.writeMetadata()
+        acceptable_hash = self.writeMetadata()
 
         self.gradescopeCLI.config.config.enforce_submission_limit = False
         self.gradescopeCLI.config.config.take_highest = False
 
-        self.gradescopeCLI.gradescope_post_processing(self.autograderResults)
+        self.gradescopeCLI.gradescope_post_processing(self.autograderResults, acceptable_hash)
 
         self.assertEqual(0, self.autograderResults["score"])
 
 
     def testExceedsPerfectScoreNoEC(self):
         self.autograderResults["score"] = 11
-        self.writeMetadata()
+        acceptable_hash = self.writeMetadata()
 
         self.gradescopeCLI.config.config.allow_extra_credit = False
         self.gradescopeCLI.config.config.perfect_score = 10
         self.gradescopeCLI.config.config.max_score = 15
 
-        self.gradescopeCLI.gradescope_post_processing(self.autograderResults)
+        self.gradescopeCLI.gradescope_post_processing(self.autograderResults, acceptable_hash)
 
         self.assertEqual(10, self.autograderResults["score"])
 
     def testExceedsPerfectScoreEC(self):
         self.autograderResults["score"] = 11
-        self.writeMetadata()
+        acceptable_hash = self.writeMetadata()
 
         self.gradescopeCLI.config.config.allow_extra_credit = True
         self.gradescopeCLI.config.config.perfect_score = 10
         self.gradescopeCLI.config.config.max_score = 15
 
-        self.gradescopeCLI.gradescope_post_processing(self.autograderResults)
+        self.gradescopeCLI.gradescope_post_processing(self.autograderResults, acceptable_hash)
 
         self.assertEqual(11, self.autograderResults["score"])
 
     def testExceedsMaxScoreEC(self):
         self.autograderResults["score"] = 16
-        self.writeMetadata()
+        acceptable_hash = self.writeMetadata()
 
         self.gradescopeCLI.config.config.allow_extra_credit = True
         self.gradescopeCLI.config.config.perfect_score = 10
         self.gradescopeCLI.config.config.max_score = 15
 
-        self.gradescopeCLI.gradescope_post_processing(self.autograderResults)
+        self.gradescopeCLI.gradescope_post_processing(self.autograderResults, acceptable_hash)
 
         self.assertEqual(15, self.autograderResults["score"])
+

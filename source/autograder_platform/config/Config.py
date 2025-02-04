@@ -213,7 +213,7 @@ class AutograderConfigurationSchema(BaseSchema[AutograderConfiguration]):
         """
         Description
         ---
-        This method validates the provided data agaist the schema.
+        This method validates the provided data against the schema.
 
         If it is valid, then it will be returned. Otherwise, an ``InvalidConfigException`` will be raised.
 
