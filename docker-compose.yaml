@@ -27,6 +27,17 @@ services:
       - "./tests/e2e/test_requirements_in_submission/submission_metadata.json:/autograder/submission_metadata.json"
       - "./tests/e2e/integration_config.toml:/autograder/source/config.toml"
 
+  test_metadata_attack_volume_holder:
+    build:
+      context: ./tests/e2e/test_metadata_attack
+      dockerfile_inline: |
+        FROM busybox
+        ADD submission_metadata.json /cache/submission_metadata.json
+        CMD ["cp", "/cache/submission_metadata.json", "/autograder/submission_metadata.json"]
+    volumes:
+      - "metadata_attack_vol:/autograder/"
+      
+
   test_metadata_attack:
     build:
       dockerfile: docker/generic.dockerfile
@@ -35,11 +46,14 @@ services:
       - run_gradescope
     working_dir: /autograder/source
     volumes:
+      - "metadata_attack_vol:/autograder"
       - "./tests/e2e/test_metadata_attack/results:/autograder/results"
       - "./tests/e2e/test_metadata_attack/student_tests:/autograder/source/student_tests"
       - "./tests/e2e/test_metadata_attack/submission:/autograder/submission"
-      - "./tests/e2e/test_metadata_attack/submission_metadata.json:/autograder/submission_metadata.json"
       - "./tests/e2e/integration_config.toml:/autograder/source/config.toml"
+    depends_on:
+      test_metadata_attack_volume_holder:
+        condition: service_completed_successfully
 
   test_data_file_in_submission:
     build:
@@ -111,3 +125,6 @@ services:
       - "./tests/e2e/test_run_with_prairie_learn/submission:/grade/student"
       - "./tests/e2e/test_run_with_prairie_learn/data.json:/grade/data/data.json"
       - "./tests/e2e/integration_config.toml:/grade/data/config.toml"
+
+volumes:
+  metadata_attack_vol:

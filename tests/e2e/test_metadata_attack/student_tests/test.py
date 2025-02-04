@@ -7,7 +7,7 @@ from autograder_platform.StudentSubmissionImpl.Python import PythonSubmission
 from autograder_platform.config.Config import AutograderConfigurationProvider
 from autograder_platform.StudentSubmissionImpl.Python.Runners import PythonRunnerBuilder
 
-class RequirementsTest(unittest.TestCase):
+class MetadataAttackTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.autograderConfig = AutograderConfigurationProvider.get()
@@ -22,8 +22,7 @@ class RequirementsTest(unittest.TestCase):
         self.environmentBuilder = ExecutionEnvironmentBuilder()
 
     @Weight(10)
-    @ImageResult()
-    def testCode(self, encode_image_data=None, set_image_data=None):
+    def testCode(self):
         environment = self.environmentBuilder.build()
 
         runner = PythonRunnerBuilder(self.studentSubmission)\
@@ -35,7 +34,3 @@ class RequirementsTest(unittest.TestCase):
         actualOutput = getResults(environment).stdout
 
         self.assertEqual(1, len(actualOutput))
-
-        imageData = encode_image_data(getResults(environment).file_out["plt.png"])
-
-        set_image_data("Plot", imageData)
