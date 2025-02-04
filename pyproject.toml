@@ -24,7 +24,7 @@
 
     dependencies = [
         "HybridJSONTestRunner==0.8.1",
-        "dill==0.3.6",
+        "dill==0.3.9",
         "Better-PyUnit-Format==0.2.3",
         "schema==0.7.5",
         "requests==2.31.0",

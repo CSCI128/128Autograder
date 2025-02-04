@@ -214,6 +214,44 @@ class TestStudentSubmission(unittest.TestCase):
                     .build()\
                     .validate()
 
+    def testIgnoreHiddenFiles(self):
+        with open(os.path.join(self.TEST_FILE_DIRECTORY, ".py"), 'w') as w:
+            w.writelines(self.TEST_FILE_MAIN)
+
+        with self.assertRaises(ValidationError):
+            PythonSubmission() \
+                .setSubmissionRoot(self.TEST_FILE_DIRECTORY) \
+                .enableLooseMainMatching()\
+                .load() \
+                .build() \
+                .validate()
+
+    def testIgnorePycacheFiles(self):
+        os.makedirs(os.path.join(self.TEST_FILE_DIRECTORY, "__pycache__"))
+        with open(os.path.join(self.TEST_FILE_DIRECTORY, "__pycache__", "main.pyc"), 'w') as w:
+            w.writelines(self.TEST_FILE_MAIN)
+
+        with self.assertRaises(ValidationError):
+            PythonSubmission() \
+                .setSubmissionRoot(self.TEST_FILE_DIRECTORY) \
+                .enableLooseMainMatching() \
+                .load() \
+                .build() \
+                .validate()
+
+    def testIgnorePathsWithSpaces(self):
+        os.makedirs(os.path.join(self.TEST_FILE_DIRECTORY, "code folder"))
+        with open(os.path.join(self.TEST_FILE_DIRECTORY, "code folder", "main.py"), 'w') as w:
+            w.writelines(self.TEST_FILE_MAIN)
+
+        with self.assertRaises(ValidationError):
+            PythonSubmission() \
+                .setSubmissionRoot(self.TEST_FILE_DIRECTORY) \
+                .load() \
+                .build() \
+                .validate()
+
+
     @patch('sys.stdout', new_callable=StringIO)
     def testDiscoverEntrypointManyPy(self, capturedStdout):
         with open(os.path.join(self.TEST_FILE_DIRECTORY, "main.py"), 'w') as w:

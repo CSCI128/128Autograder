@@ -48,8 +48,8 @@ class TestFullExecutions(unittest.TestCase):
         if os.path.exists(self.DATA_DIRECTORY):
             shutil.rmtree(self.DATA_DIRECTORY)
 
-        if os.path.exists(ExecutionEnvironment.SANDBOX_LOCATION):
-            shutil.rmtree(ExecutionEnvironment.SANDBOX_LOCATION)
+        if os.path.exists(ExecutionEnvironment.sandbox_location):
+            shutil.rmtree(ExecutionEnvironment.sandbox_location)
 
         if os.path.exists(self.PYTHON_PROGRAM_DIRECTORY):
             shutil.rmtree(self.PYTHON_PROGRAM_DIRECTORY)
@@ -434,27 +434,35 @@ class TestFullExecutions(unittest.TestCase):
         self.assertEqual(expected, getResults(environment).return_val)
 
     def testVerifySandboxDeletedAfterTests(self):
-        program = "print('OUTPUT stuff')"
-        self.writePythonFile("submission.py", program)
+        expectedContents = "hello"
 
-        self.writePythonFile(".keep", "")
+        program = f"o = open('output.txt', 'w');o.write('{expectedContents}');o.close()"
+        self.writePythonFile("submission.py", program)
 
         submission = PythonSubmission()\
             .setSubmissionRoot(self.PYTHON_PROGRAM_DIRECTORY)\
             .load()\
             .build()\
             .validate()
-        
-        environment = ExecutionEnvironmentBuilder()\
-            .addFile(os.path.join(self.PYTHON_PROGRAM_DIRECTORY, ".keep"), ".keep")\
-            .setTimeout(5)\
-            .build()
-        
-        for _ in range(10):
+
+
+        for _ in range(100):
+            environment = ExecutionEnvironmentBuilder() \
+                .setTimeout(2) \
+                .build()
+
             runner = PythonRunnerBuilder(submission)\
                 .setEntrypoint(module=True)\
                 .build()
             Executor.execute(environment, runner)
+            file = getResults(environment).file_out["output.txt"]
+
+            self.assertEqual(expectedContents, file)
+
+            Executor.cleanup(environment)
+
+            self.assertFalse(os.path.exists(environment.sandbox_location))
+
 
         
         

@@ -1,4 +1,5 @@
 import os
+import tempfile
 from typing import Callable, Generic, List, Dict, Optional, Tuple, Type, TypeVar, Union, Any
 
 import dataclasses
@@ -111,7 +112,8 @@ class ExecutionEnvironment(Generic[ImplEnvironment, ImplResults]):
     is provided and what 'pre-run' tasks are completed (ie: creating a class instance).
     This class does not define the actual executor.
     """
-
+    sandbox_location: str = "./sandbox"
+    """The location for the sandbox folder"""
     stdin: List[str] = dataclasses.field(default_factory=list)
     """If stdin will be passed to the student's submission"""
     files: Dict[str, str] = dataclasses.field(default_factory=dict)
@@ -127,13 +129,10 @@ class ExecutionEnvironment(Generic[ImplEnvironment, ImplResults]):
     directly, rather, use getOrAssert method
     """
 
-    SANDBOX_LOCATION: str = "./sandbox"
-
-
 def getResults(environment: ExecutionEnvironment[ImplEnvironment, ImplResults]) -> Results[ImplResults]:
     """
     This method gets the results from the environment. 
-    If they aren't populated then an assertion error is raised. 
+    If they aren't populated, then an assertion error is raised.
     Results should be accessed directly from the Results object by their key name.
     :param environment: the execution environment.
     :raises AssertionError: if the results aren't populated.
@@ -160,6 +159,9 @@ class ExecutionEnvironmentBuilder(Generic[ImplEnvironment, ImplResults]):
     """
 
     def __init__(self):
+        # windows doesn't clean out temp files by default (for compatibility reasons),
+        # so we are going to be good boys and girls, and delete the *contents* of this folder at the end of a run.
+        # however, as it is a different folder each time, we are going to silently fail.
         self.environment = ExecutionEnvironment[ImplEnvironment, ImplResults]()
         self.dataRoot = "."
 
@@ -213,7 +215,6 @@ class ExecutionEnvironmentBuilder(Generic[ImplEnvironment, ImplResults]):
             fileSrc = fileSrc[2:]
 
         fileSrc = os.path.join(self.dataRoot, fileSrc)
-        fileDest = os.path.join(self.environment.SANDBOX_LOCATION, fileDest)
 
         self.environment.files[fileSrc] = fileDest
 
@@ -244,6 +245,14 @@ class ExecutionEnvironmentBuilder(Generic[ImplEnvironment, ImplResults]):
 
         return self
 
+    def _setAndResolveSandbox(self):
+        tempLocation = tempfile.mkdtemp(prefix="autograder_")
+
+        self.environment.sandbox_location = tempLocation
+
+        for src, dest in self.environment.files.items():
+            self.environment.files[src] = os.path.join(self.environment.sandbox_location, dest)
+
     @staticmethod
     def _validate(environment: ExecutionEnvironment):
         # For now this only validating that the files actually exist
@@ -268,6 +277,9 @@ class ExecutionEnvironmentBuilder(Generic[ImplEnvironment, ImplResults]):
 
         :returns: The build environment
         """
+
+        self._setAndResolveSandbox()
+
         self._validate(self.environment)
 
         return self.environment

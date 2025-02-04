@@ -19,7 +19,7 @@ from autograder_platform.StudentSubmissionImpl.Python.PythonModuleMockImportFact
 class TestPythonSubmissionProcess(unittest.TestCase):
     def setUp(self):
         self.environment = ExecutionEnvironment()
-        self.environment.SANDBOX_LOCATION = "."
+        self.environment.sandbox_location = "."
         self.environment.impl_environment = PythonEnvironment()
         self.runnableSubmission = RunnableStudentSubmission()
         self.submission: PythonSubmission = PythonSubmission()
@@ -484,14 +484,14 @@ class TestPythonSubmissionProcess(unittest.TestCase):
         program = "pass"
 
         self.submission.getExecutableSubmission = lambda: compile(program, "test_code", "exec")
-        self.environment.SANDBOX_LOCATION = "./sandbox"
+        self.environment.sandbox_location = "./sandbox"
 
-        if os.path.exists(self.environment.SANDBOX_LOCATION):
-            shutil.rmtree(self.environment.SANDBOX_LOCATION)
+        if os.path.exists(self.environment.sandbox_location):
+            shutil.rmtree(self.environment.sandbox_location)
 
-        os.mkdir(self.environment.SANDBOX_LOCATION)
+        os.mkdir(self.environment.sandbox_location)
 
-        fileLocation = os.path.join(self.environment.SANDBOX_LOCATION, "file.txt")
+        fileLocation = os.path.join(self.environment.sandbox_location, "file.txt")
 
         with open(fileLocation, 'w') as w:
             w.write("this is a line in the file")
@@ -563,4 +563,3 @@ class TestPythonSubmissionProcess(unittest.TestCase):
 
         with self.assertRaises(MissingOutputDataException):
             raise results.exception
-

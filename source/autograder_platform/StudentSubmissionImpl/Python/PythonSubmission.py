@@ -84,12 +84,12 @@ class PythonSubmission(AbstractStudentSubmission[CodeType]):
         self.discoveredFileMap[fileType].append(path)
 
     def _discoverSubmittedFiles(self, directoryToSearch: str) -> None:
-        pathesToVisit: Iterable[str] = filter(filterSearchResults, os.listdir(directoryToSearch))
+        pathsToVisit: Iterable[str] = filter(filterSearchResults, os.listdir(directoryToSearch))
 
-        if not pathesToVisit:
+        if not pathsToVisit:
             return
 
-        for path in pathesToVisit:
+        for path in pathsToVisit:
             if os.path.isdir(os.path.join(directoryToSearch, path)):
                 self._discoverSubmittedFiles(os.path.join(directoryToSearch, path))
                 continue
