@@ -436,7 +436,7 @@ class TestFullExecutions(unittest.TestCase):
     def testVerifySandboxDeletedAfterTests(self):
         expectedContents = "hello"
 
-        program = f"open('output.txt', 'w').write('{expectedContents}')"
+        program = f"o = open('output.txt', 'w');o.write('{expectedContents}');o.close()"
         self.writePythonFile("submission.py", program)
 
         submission = PythonSubmission()\
@@ -444,9 +444,9 @@ class TestFullExecutions(unittest.TestCase):
             .load()\
             .build()\
             .validate()
-        
 
-        for _ in range(10):
+
+        for _ in range(100):
             environment = ExecutionEnvironmentBuilder() \
                 .setTimeout(2) \
                 .build()

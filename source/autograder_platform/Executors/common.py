@@ -35,21 +35,21 @@ def detectFileSystemChanges(inFiles: Iterable[str], directoryToCheck: str) -> Di
 
     outputFiles: Dict[str, str] = {}
 
-    # This ignores sub folders
-    for file in files:
-        if os.path.isdir(file):
+    # This ignores subfolders
+    for path in files:
+        if os.path.isdir(path):
             continue
 
-        if "__" in file:
+        if "__" in os.path.basename(path):
             continue
 
         # ignore hidden files
-        if os.path.basename(file)[0] == ".":
+        if os.path.basename(path)[0] == ".":
             continue
 
-        if file in inFiles:
+        if path in inFiles:
             continue
 
-        outputFiles[os.path.basename(file)] = file
+        outputFiles[os.path.basename(path)] = path
 
     return outputFiles

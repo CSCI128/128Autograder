@@ -1,0 +1,1 @@
+o = open('output.txt', 'w');o.write('hello');o.close()
