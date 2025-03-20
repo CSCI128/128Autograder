@@ -1,3 +1,5 @@
+import os
+
 from autograder_utils.ResultBuilders import prairieLearnResultBuilder
 from autograder_utils.ResultFinalizers import prairieLearnResultFinalizer
 from autograder_utils.JSONTestRunner import JSONTestRunner
@@ -16,7 +18,9 @@ class PrairieLearnAutograderCLI(AutograderCLITool):
                                  help="The location for the autograder JSON results")
         self.parser.add_argument("--metadata-path", default="/grade/data/data.json",
                                  help="The location for the submission metadata JSON")
-        self.parser.add_argument("--test-directory", default="/grade/tests",
+        self.parser.add_argument("--autograder-root", default="/grade/tests",
+                                 help="The base location for the autograder")
+        self.parser.add_argument("--test-directory", default="student_tests",
                                  help="The location for the student tests")
         self.parser.add_argument("--submission-directory", default="/grade/student",
                                  help="The directory where the student's submission is located")
@@ -26,7 +30,8 @@ class PrairieLearnAutograderCLI(AutograderCLITool):
             return
 
         configBuilder.setStudentSubmissionDirectory(self.arguments.submission_directory)
-        configBuilder.setTestDirectory(self.arguments.test_directory)
+        configBuilder.setAutograderRoot(self.arguments.autograder_root)
+        configBuilder.setTestDirectory(str(os.path.join(self.arguments.autograder_root, self.arguments.test_directory)))
 
     def run(self) -> bool:  # pragma: no cover
         self.configure_options()

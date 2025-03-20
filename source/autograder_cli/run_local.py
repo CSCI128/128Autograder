@@ -190,6 +190,8 @@ class LocalAutograderCLI(AutograderCLITool):
             self.print_info_message(f"Selecting autograder config located at '{autograders[0]}'")
             return autograders[0]
 
+        autograders.sort()
+
         self.print_info_message(f"Multiple autograders found at {full_path}!")
         self.print_info_message(f"Please select the autograder you want to run")
 

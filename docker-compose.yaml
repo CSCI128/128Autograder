@@ -117,14 +117,14 @@ services:
     entrypoint: run_prairielearn
     command:
       - --config-file
-      - /grade/data/config.toml
+      - /grade/tests/config.toml
     working_dir: /grade
     volumes:
       - "./tests/e2e/test_run_with_prairie_learn/results:/grade/results"
-      - "./tests/e2e/test_run_with_prairie_learn/student_tests:/grade/tests"
+      - "./tests/e2e/test_run_with_prairie_learn/student_tests:/grade/tests/student_tests"
       - "./tests/e2e/test_run_with_prairie_learn/submission:/grade/student"
       - "./tests/e2e/test_run_with_prairie_learn/data.json:/grade/data/data.json"
-      - "./tests/e2e/integration_config.toml:/grade/data/config.toml"
+      - "./tests/e2e/integration_config.toml:/grade/tests/config.toml"
 
 volumes:
   metadata_attack_vol:
