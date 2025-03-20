@@ -166,7 +166,7 @@ class Build:
         with open(os.path.join(path, "setup.sh"), "w") as w:
             w.write(
                 "add-apt-repository ppa:deadsnakes/ppa -y\n"
-                "apt update"
+                "apt update\n"
                 "apt-get install python3.12 -y\n"
                 "apt-get install python3.12-venv -y\n"
                 "python3.12 -m venv /autograder/.venv\n"
@@ -190,9 +190,10 @@ class Build:
         with open(os.path.join(path, "run_autograder"), "w") as w:
             w.write(
                 "#!/bin/bash\n"
-                "pushd source > /dev/null || echo 'Autograder failed to open source'\n"
-                "run_prairielearn\n"
-                "popd > /dev/null || true\n"
+                "cd /grade > /dev/null || echo 'Autograder failed to open source'\n"
+                "mkdir results\n"
+                "echo '{}' > /grade/results/results.json\n"
+                "run_prairielearn --config-file /grade/tests/config.toml\n"
             )
 
     @staticmethod
@@ -212,6 +213,32 @@ class Build:
                 destPath = os.path.join(generationPath, file)
                 os.makedirs(os.path.dirname(destPath), exist_ok=True)
                 Build.copy(file, destPath)
+
+    @staticmethod
+    def generatePrairieLearn(generationPath: str, files: Dict[FilesEnum, List[str]], runFileGenerator: Callable[[str], None]):
+        # autograder needs to be generated in the test folder as that is the only folder that PL will mount
+        generationPath = os.path.join(generationPath, "prairielearn")
+        sourcePath = os.path.join(generationPath, "tests")
+
+        os.makedirs(generationPath, exist_ok=True)
+        os.makedirs(sourcePath, exist_ok=True)
+
+        runFileGenerator(sourcePath)
+
+        for key, listOfFiles in files.items():
+            if key is FilesEnum.STARTER_CODE:
+                for file in listOfFiles:
+                    destPath = os.path.join(generationPath, os.path.basename(file))
+                    os.makedirs(os.path.dirname(destPath), exist_ok=True)
+                    Build.copy(file, destPath)
+                continue
+
+            for file in listOfFiles:
+                destPath = os.path.join(sourcePath, file)
+                os.makedirs(os.path.dirname(destPath), exist_ok=True)
+                Build.copy(file, destPath)
+
+
 
     @staticmethod
     def generateStudent(generationPath: str, files: Dict[FilesEnum, List[str]], studentWorkFolder: str):
@@ -272,9 +299,8 @@ class Build:
                             f"{self.config.semester}_{self.config.assignment_name}")
         if self.config.build.build_prairie_learn:
             # this build is a touch bigger than it needs to be, but for now I'm not super concerned about it
-            self.generateDocker(self.generationDirectory, "prairielearn", files, self.version,
-                                lambda _, __: None, self.createRunForPrairieLearn)
-            self.createDist("docker/prairielearn", self.generationDirectory, self.distDirectory,
+            self.generatePrairieLearn(self.generationDirectory,  files, self.createRunForPrairieLearn)
+            self.createDist("prairielearn", self.generationDirectory, self.distDirectory,
                             f"{self.config.semester}_{self.config.assignment_name}")
 
         if self.config.build.build_student:
