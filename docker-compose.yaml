@@ -114,10 +114,8 @@ services:
     build:
       dockerfile: docker/generic.dockerfile
       context: .
-    entrypoint: run_prairielearn
-    command:
-      - --config-file
-      - /grade/tests/config.toml
+    entrypoint: ["sh", "/app/entrypoint.sh"]
+    working_dir: /app/source
     volumes:
       - "./tests/e2e//test_run_with_prairie_learn/entrypoint.sh:/app/entrypoint.sh"
       - "./tests/e2e//test_run_with_prairie_learn/student_tests:/app/source/student_tests"
