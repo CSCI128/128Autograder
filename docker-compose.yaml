@@ -114,17 +114,15 @@ services:
     build:
       dockerfile: docker/generic.dockerfile
       context: .
-    entrypoint: run_prairielearn
-    command:
-      - --config-file
-      - /grade/tests/config.toml
-    working_dir: /grade
+    entrypoint: ["sh", "/app/entrypoint.sh"]
+    working_dir: /app/source
     volumes:
+      - "./tests/e2e//test_run_with_prairie_learn/entrypoint.sh:/app/entrypoint.sh"
+      - "./tests/e2e//test_run_with_prairie_learn/student_tests:/app/source/student_tests"
       - "./tests/e2e/test_run_with_prairie_learn/results:/grade/results"
-      - "./tests/e2e/test_run_with_prairie_learn/student_tests:/grade/tests/student_tests"
       - "./tests/e2e/test_run_with_prairie_learn/submission:/grade/student"
       - "./tests/e2e/test_run_with_prairie_learn/data.json:/grade/data/data.json"
-      - "./tests/e2e/integration_config.toml:/grade/tests/config.toml"
+      - "./tests/e2e/test_run_with_prairie_learn/pl_config.toml:/app/source/config.toml"
 
 volumes:
   metadata_attack_vol:
