@@ -194,7 +194,7 @@ class Build:
                 "cd /grade > /dev/null || echo 'Autograder failed to open source'\n"
                 "mkdir -p results\n"
                 "echo '{}' > /grade/results/results.json\n"
-                "run_prairielearn --config-file /grade/tests/config.toml\n"
+                "run_prairielearn --config-file /grade/tests/config.toml || exit 0\n"
             )
         os.chmod(os.path.join(path, "run_autograder"), 0o777)
 
