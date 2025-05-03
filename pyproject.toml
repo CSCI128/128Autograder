@@ -36,6 +36,9 @@
         "coverage[toml]",
         "build",
     ]
+    ipython = [
+        "nbformat",
+    ]
 
 [project.scripts]
     run_gradescope = "autograder_cli.run_gradescope:tool"
