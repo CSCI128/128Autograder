@@ -9,6 +9,7 @@ class CellMetadata:
     id: str = ""
     deps: List[Tuple[int, str]] = dataclasses.field(default=list)
 
+
 def parseCellId(keywords: List[ast.keyword]) -> str:
     value: Optional[str] = None
     for node in keywords:
@@ -27,6 +28,7 @@ def parseCellId(keywords: List[ast.keyword]) -> str:
 
     return value
 
+
 def parseCellDeps(keywords: List[ast.keyword]) -> List[Tuple[int, str]]:
     deps: List[Tuple[int, str]] = []
     for node in keywords:
@@ -43,7 +45,8 @@ def parseCellDeps(keywords: List[ast.keyword]) -> List[Tuple[int, str]]:
                 raise SyntaxError(f"Invalid value for deps! Expected a tuple with ordering and id! Was {dep}")
 
             if len(dep.elts) != 2:
-                raise SyntaxError(f"Invalid value for deps! Expected a tuple with EXACTLY ordering and id! Was {dep.elts}")
+                raise SyntaxError(
+                    f"Invalid value for deps! Expected a tuple with EXACTLY ordering and id! Was {dep.elts}")
 
             ordering = dep.elts[0]
             id = dep.elts[1]
@@ -58,7 +61,7 @@ def parseCellDeps(keywords: List[ast.keyword]) -> List[Tuple[int, str]]:
                 raise TypeError(f"Invalid type for ordering! Expected an int! Was {ordering.value}")
 
             if not isinstance(id.value, str):
-                raise TypeError(f"Invalid type for ordering! Expected an str! Was {id.value}")
+                raise TypeError(f"Invalid type for ordering! Expected a str! Was {id.value}")
 
             deps.append((ordering.value, id.value))
 
@@ -66,7 +69,8 @@ def parseCellDeps(keywords: List[ast.keyword]) -> List[Tuple[int, str]]:
 
     return deps
 
-def parseCellMetadata(syntaxTree: ast.Module) -> Optional[CellMetadata] :
+
+def parseCellMetadata(syntaxTree: ast.Module) -> Optional[CellMetadata]:
     metadata: Optional[CellMetadata] = None
 
     for node in ast.walk(syntaxTree):
@@ -78,7 +82,7 @@ def parseCellMetadata(syntaxTree: ast.Module) -> Optional[CellMetadata] :
 
         funcDef: ast.Name = node.func
 
-        if funcDef.id != "TestableCell" or funcDef.id != "Cell":
+        if funcDef.id != "TestableCell" and funcDef.id != "Cell":
             continue
 
         # then we know its something that we care about
