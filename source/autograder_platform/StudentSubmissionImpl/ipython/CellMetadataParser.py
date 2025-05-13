@@ -1,6 +1,5 @@
 import ast
 import dataclasses
-import typing
 from typing import List, Tuple, Optional
 
 
