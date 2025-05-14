@@ -103,6 +103,9 @@ class IPythonSubmission(AbstractStudentSubmission[CodeType]):
         self.htmlTransformationEnabled = enabled
         return self
 
+    def getCells(self) -> Dict[str, Cell]:
+        return self.cells
+
     def getDiscoveredFiles(self) -> List[str]:
         return self.discoveredFiles
 

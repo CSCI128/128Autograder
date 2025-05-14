@@ -1,13 +1,15 @@
 import ast
 import dataclasses
+from collections import namedtuple
 from typing import List, Tuple, Optional
 
+Dependency = namedtuple("Dependency", ["order", "id"])
 
 @dataclasses.dataclass
 class CellMetadata:
     runnable: bool = False
     id: str = ""
-    deps: List[Tuple[int, str]] = dataclasses.field(default=list)
+    deps: List[Dependency] = dataclasses.field(default=list)
 
 
 def parseCellId(keywords: List[ast.keyword]) -> str:
@@ -63,7 +65,7 @@ def parseCellDeps(keywords: List[ast.keyword]) -> List[Tuple[int, str]]:
             if not isinstance(id.value, str):
                 raise TypeError(f"Invalid type for ordering! Expected a str! Was {id.value}")
 
-            deps.append((ordering.value, id.value))
+            deps.append(Dependency(ordering.value, id.value))
 
         break
 

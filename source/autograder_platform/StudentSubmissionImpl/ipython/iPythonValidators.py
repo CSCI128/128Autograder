@@ -2,7 +2,8 @@ from typing import List
 
 from autograder_platform.StudentSubmission.AbstractValidator import AbstractValidator
 from autograder_platform.StudentSubmission.common import ValidationHook
-from autograder_platform.StudentSubmissionImpl.ipython.common import MissingNotebookFile, TooManyNotebooksError
+from autograder_platform.StudentSubmissionImpl.ipython.common import MissingNotebookFile, TooManyNotebooksError, \
+    MissingDependencyError, NoTestableCellsError
 
 
 class TestableCellDependencyValidator(AbstractValidator):
@@ -10,22 +11,43 @@ class TestableCellDependencyValidator(AbstractValidator):
     def getValidationHook() -> ValidationHook:
         return ValidationHook.POST_LOAD
 
+    def __init__(self):
+        super().__init__()
+        self.cells = {}
+
     def setup(self, studentSubmission):
-        pass
+        self.cells = studentSubmission.getCells()
 
     def run(self):
-        pass
+        availableCells = self.cells.keys()
+
+        for cell in self.cells.values():
+            metadata = cell.metadata
+            for dep in metadata.deps:
+                if dep.id not in availableCells:
+                    self.addError(MissingDependencyError(metadata.id, dep.id, availableCells))
 
 class TestableCellValidator(AbstractValidator):
     @staticmethod
     def getValidationHook() -> ValidationHook:
         return ValidationHook.POST_LOAD
 
+    def __init__(self):
+        super().__init__()
+        self.cells = {}
+
     def setup(self, studentSubmission):
-        pass
+        self.cells = studentSubmission.getCells()
 
     def run(self):
-        pass
+        numberRunnable = 0
+        for cell in self.cells.values():
+            metadata = cell.metadata
+
+            numberRunnable += int(metadata.runnable)
+
+        if numberRunnable == 0:
+            self.addError(NoTestableCellsError())
 
 
 class IPythonFileValidator(AbstractValidator):
