@@ -1,8 +1,6 @@
 import abc
 from typing import Generic, List, Set, TypeVar, Dict, Type
 
-from build import BuildSystemTableValidationError
-
 from autograder_platform.StudentSubmission.ITransformer import ITransformer
 from autograder_platform.StudentSubmission.common import ValidationError, ValidationHook
 
@@ -12,7 +10,7 @@ from autograder_platform.StudentSubmission.GenericValidators import SubmissionPa
 T = TypeVar("T")
 
 # for some reason this has to be TBuilder??
-Builder = TypeVar("TBuilder", bound="AbstractStudentSubmission[Any]")
+Builder = TypeVar("Builder", bound="AbstractStudentSubmission[Any]")
 
 
 class AbstractStudentSubmission(abc.ABC, Generic[T]):
