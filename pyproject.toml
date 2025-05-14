@@ -38,6 +38,7 @@
     ]
     ipython = [
         "nbformat",
+        "nbconvert"
     ]
 
 [project.scripts]
