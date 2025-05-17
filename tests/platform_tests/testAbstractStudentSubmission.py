@@ -62,9 +62,10 @@ class ManualValidator(AbstractValidator):
     def getValidationHook() -> ValidationHook:
         return ValidationHook.MANUAL
 
-    def __init__(self):
+    def __init__(self, raiseError=False):
         super().__init__()
         self.called = False
+        self.raiseError = raiseError
 
     def setup(self, studentSubmission):
         self.called = True
@@ -72,6 +73,8 @@ class ManualValidator(AbstractValidator):
     def run(self):
         if not self.called:
             self.addError(Exception("Setup was not called!"))
+        if self.raiseError:
+            self.addError(Exception("Manual validator error!"))
 
 
 class SimpleTransformer(ITransformer):
@@ -180,6 +183,58 @@ class TestAbstractStudentSubmission(unittest.TestCase):
         submission.runManualValidationHook(ManualValidator)
 
         self.assertTrue(manualValidator.called)
+
+    def testNoManualValidatorsDefined(self):
+        submissionRoot = "./submission"
+        os.mkdir(submissionRoot)
+        with open(os.path.join(submissionRoot, "file.txt"), 'w') as w:
+            w.write("FILE!")
+
+        submission = StudentSubmission() \
+            .setSubmissionRoot(submissionRoot) \
+            .addValidator(CodeLoadedValidator()) \
+            .load() \
+            .build() \
+            .validate()
+
+        with self.assertRaises(RuntimeError):
+            submission.runManualValidationHook(ManualValidator)
+
+    def testIncorrectManualValidatorCalled(self):
+        manualValidator = ManualValidator()
+        submissionRoot = "./submission"
+        os.mkdir(submissionRoot)
+        with open(os.path.join(submissionRoot, "file.txt"), 'w') as w:
+            w.write("FILE!")
+
+        submission = StudentSubmission() \
+            .setSubmissionRoot(submissionRoot) \
+            .addValidator(CodeLoadedValidator()) \
+            .addValidator(manualValidator) \
+            .load() \
+            .build() \
+            .validate()
+
+        with self.assertRaises(RuntimeError):
+            submission.runManualValidationHook(CodeLoadedValidator)
+
+    def testManualValidatorRaisesError(self):
+        manualValidator = ManualValidator(raiseError=True)
+        submissionRoot = "./submission"
+        os.mkdir(submissionRoot)
+        with open(os.path.join(submissionRoot, "file.txt"), 'w') as w:
+            w.write("FILE!")
+
+        submission = StudentSubmission() \
+            .setSubmissionRoot(submissionRoot) \
+            .addValidator(CodeLoadedValidator()) \
+            .addValidator(manualValidator) \
+            .load() \
+            .build() \
+            .validate()
+
+        with self.assertRaises(ValidationError):
+            submission.runManualValidationHook(ManualValidator)
 
     def testRunTransformer(self):
         expected = "this was transformed!"

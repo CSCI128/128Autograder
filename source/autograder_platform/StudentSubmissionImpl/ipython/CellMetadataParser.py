@@ -38,7 +38,7 @@ def parseCellDeps(keywords: List[ast.keyword]) -> List[Tuple[int, str]]:
             continue
 
         if not isinstance(node.value, ast.List):
-            raise SyntaxError(f"Invalid value for deps! Should be a list! Was {node.value}")
+            raise TypeError(f"Invalid value for deps! Expected a list! Was {node.value}")
 
         listToProcess: ast.List = node.value
 

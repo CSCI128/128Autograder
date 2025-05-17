@@ -182,3 +182,46 @@ TestableCell(id="testable_cell", deps=[(1, 1)])
         msg = str(ex.exception)
 
         self.assertIn("expected a str", msg.lower())
+
+    def testParseCellMetadataMissingId(self):
+        program = \
+            f"""
+from autograder_platform.StudentSubmissionImpl.ipython.metadata import TestableCell
+TestableCell()
+        """
+
+        with self.assertRaises(SyntaxError) as ex:
+            parseCellMetadata(ast.parse(program))
+
+        msg = str(ex.exception)
+
+        self.assertIn("missing required field", msg.lower())
+
+    def testParseCellMetadataInvalidDeps(self):
+        program = \
+            f"""
+from autograder_platform.StudentSubmissionImpl.ipython.metadata import TestableCell
+TestableCell(id="testable_cell", deps=(1, 1))
+        """
+
+        with self.assertRaises(TypeError) as ex:
+            parseCellMetadata(ast.parse(program))
+
+        msg = str(ex.exception)
+
+        self.assertIn("expected a list", msg.lower())
+
+    def testIgnoreIrrelevantFunctionCalls(self):
+        expected_id = "testable_cell"
+        program = \
+            f"""
+from autograder_platform.StudentSubmissionImpl.ipython.metadata import TestableCell
+print("this is irrelevant")
+TestableCell(id="{expected_id}", deps=[(1, "1")])
+        """
+
+        cellMetadata: Optional[CellMetadata] = parseCellMetadata(ast.parse(program))
+
+        self.assertIsNotNone(cellMetadata)
+        self.assertEqual(expected_id, cellMetadata.id)
+
