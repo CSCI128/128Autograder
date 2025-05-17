@@ -61,7 +61,7 @@ class IPythonFileValidator(AbstractValidator):
         self.files: List[str] = []
 
     def setup(self, studentSubmission):
-        submissionFiles = studentSubmission.getDiscoveredFiles()
+        self.files = studentSubmission.getDiscoveredFiles()
 
     def run(self):
         if len(self.files) == 0:

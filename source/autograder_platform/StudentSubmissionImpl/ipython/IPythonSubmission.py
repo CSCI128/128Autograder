@@ -3,7 +3,7 @@ import dataclasses
 import os
 import re
 from types import CodeType
-from typing import TypeVar, List, Tuple, Dict, Iterable, Optional, cast
+from typing import TypeVar, List, Dict, Iterable, Optional
 
 import nbconvert
 from nbformat import read, NotebookNode
