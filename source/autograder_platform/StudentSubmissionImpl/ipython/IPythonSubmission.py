@@ -12,7 +12,8 @@ from autograder_platform.StudentSubmission.AbstractStudentSubmission import Abst
 from autograder_platform.StudentSubmissionImpl.ipython.CellMetadataParser import CellMetadata, parseCellMetadata
 from autograder_platform.StudentSubmissionImpl.ipython.IPythonTransformers import MagicCommandTransformer, \
     MatplotLibFigTransformer
-from autograder_platform.StudentSubmissionImpl.ipython.iPythonValidators import IPythonFileValidator
+from autograder_platform.StudentSubmissionImpl.ipython.iPythonValidators import IPythonFileValidator, \
+    TestableCellValidator, TestableCellDependencyValidator
 
 Builder = TypeVar("Builder", bound="IPythonSubmission")
 
@@ -44,6 +45,8 @@ class IPythonSubmission(AbstractStudentSubmission[CodeType]):
         self.notebookHtml: Optional[str] = None
 
         self.addValidator(IPythonFileValidator())
+        self.addValidator(TestableCellValidator())
+        self.addValidator(TestableCellDependencyValidator())
         self.addTransformer(MagicCommandTransformer())
         self.addTransformer(MatplotLibFigTransformer())
 
@@ -72,8 +75,8 @@ class IPythonSubmission(AbstractStudentSubmission[CodeType]):
             loadedNotebook: NotebookNode = read(r, as_version=4)
 
         if self.htmlTransformationEnabled:
-            exporter = nbconvert.HTMLExporter(template="default")
-            self.notebookHtml = exporter.export_from_notebook(loadedNotebook)
+            exporter = nbconvert.HTMLExporter()
+            (self.notebookHtml, _) = exporter.from_notebook_node(loadedNotebook)
 
         for cell in loadedNotebook.cells:
             if "cell_type" not in cell or "source" not in cell:
