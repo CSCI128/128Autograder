@@ -2,7 +2,7 @@ import ast
 import unittest
 from typing import Optional
 
-from autograder_platform.StudentSubmissionImpl.ipython.CellMetadataParser import CellMetadata, parseCellMetadata
+from autograder_platform.StudentSubmissionImpl.IPython.CellMetadataParser import CellMetadata, parseCellMetadata
 
 
 class TestCellMetadataParser(unittest.TestCase):
