@@ -64,21 +64,13 @@ class IPythonSubmission(AbstractStudentSubmission[CodeType]):
             if self.IPYTHON_FILE_REGEX.match(path):
                 self.discoveredFiles.append(os.path.join(directoryToSearch, path))
 
-
-    def doLoad(self):
-        self._discoverSubmittedFiles(self.getSubmissionRoot())
-        self.runManualValidationHook(IPythonFileValidator)
-
-        fileToLoad = self.discoveredFiles[0]
-
-        with open(fileToLoad, 'r', encoding="UTF-8") as r:
-            loadedNotebook: NotebookNode = read(r, as_version=4)
-
+    def _exportHTML(self, notebook: NotebookNode):
         if self.htmlTransformationEnabled:
             exporter = nbconvert.HTMLExporter()
-            (self.notebookHtml, _) = exporter.from_notebook_node(loadedNotebook)
+            (self.notebookHtml, _) = exporter.from_notebook_node(notebook)
 
-        for cell in loadedNotebook.cells:
+    def _parseCells(self, notebook: NotebookNode):
+        for cell in notebook.cells:
             if "cell_type" not in cell or "source" not in cell:
                 continue
 
@@ -95,6 +87,20 @@ class IPythonSubmission(AbstractStudentSubmission[CodeType]):
             cellWithMetadata = Cell(metadata, source)
 
             self.cells[metadata.id] = cellWithMetadata
+
+    def doLoad(self):
+        self._discoverSubmittedFiles(self.getSubmissionRoot())
+        self.runManualValidationHook(IPythonFileValidator)
+
+        fileToLoad = self.discoveredFiles[0]
+
+        with open(fileToLoad, 'r', encoding="UTF-8") as r:
+            loadedNotebook: NotebookNode = read(r, as_version=4)
+
+        self._exportHTML(loadedNotebook)
+
+        self._parseCells(loadedNotebook)
+
 
     def doBuild(self):
         pass
