@@ -1,8 +1,9 @@
 from importlib import import_module
 from types import CodeType, ModuleType
-from typing import TypeVar, Tuple, List, Final, Optional, Dict, Callable, TypedDict
+from typing import TypeVar, Tuple, List, Final, Optional, Dict, Callable, TypedDict, Union
 
 from autograder_platform.StudentSubmission.common import InvalidRunner, MissingFunctionDefinition
+from autograder_platform.StudentSubmissionImpl.IPython import IPythonSubmission
 from autograder_platform.StudentSubmissionImpl.Python import PythonSubmission
 from autograder_platform.StudentSubmissionImpl.Python.common import PythonTaskResult
 from autograder_platform.Tasks.TaskRunner import TaskRunner
@@ -155,7 +156,7 @@ class PythonTaskLibrary:
 class PythonRunnerBuilder:
     INJECTED_PREFIX: Final[str] = "INJECTED_"
 
-    def __init__(self: Builder, submission: PythonSubmission):
+    def __init__(self: Builder, submission: Union[PythonSubmission, IPythonSubmission]):
         self.submission: Final[CodeType] = submission.getExecutableSubmission()
         self.parameters: List[Parameter] = []
         self.mocks: Dict[str, Optional[SingleFunctionMock]] = {}

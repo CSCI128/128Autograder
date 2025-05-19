@@ -169,11 +169,6 @@ class PythonSubmission(AbstractStudentSubmission[CodeType]):
 
         self.entryPoint = self._compileFile(mainFilePath, mainFileCode)
 
-        # Huge todo here - This will be a seperate story i think
-        # Basically by creating a meta hook in the import system, we can resolve modules from the students submission.
-        # This also allows us to mock out imported libraries.
-        # Im thinking this might be a seperate module as there is a decent amount of machinary that we need to override.
-
     def getExecutableSubmission(self) -> CodeType:
         if self.entryPoint is None:
             raise RuntimeError("Submission has not been built! No entrypoint has been defined!")

@@ -20,7 +20,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install -e '.[dev]'
+          pip install -e '.[dev,ipython]'
 
       - name: Test with PyUnit and collect coverage
         run: |

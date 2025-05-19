@@ -58,7 +58,6 @@ class PythonConfiguration:
     The size of the output buffer when the autograder runs
     """
 
-
 @dataclass(frozen=True)
 class CConfiguration:
     """
@@ -114,9 +113,9 @@ class BasicConfiguration:
     Points greater than this will not be honored.
     """
     python: OptionalType[PythonConfiguration] = None
-    """Extra python spefic configuration. See :ref:`PythonConfiguration` for options"""
+    """Extra python specific configuration. See :ref:`PythonConfiguration` for options"""
     c: OptionalType[CConfiguration] = None
-    """Extra C/C-like spefic configuration. See :ref:`CConfiguration` for options"""
+    """Extra C/C-like specific configuration. See :ref:`CConfiguration` for options"""
 
 
 @dataclass(frozen=True)

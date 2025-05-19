@@ -1,6 +1,7 @@
 import abc
-from typing import Generic, List, Set, TypeVar, Dict
+from typing import Generic, List, Set, TypeVar, Dict, Type
 
+from autograder_platform.StudentSubmission.ITransformer import ITransformer
 from autograder_platform.StudentSubmission.common import ValidationError, ValidationHook
 
 from autograder_platform.StudentSubmission.AbstractValidator import AbstractValidator
@@ -9,7 +10,7 @@ from autograder_platform.StudentSubmission.GenericValidators import SubmissionPa
 T = TypeVar("T")
 
 # for some reason this has to be TBuilder??
-TBuilder = TypeVar("TBuilder", bound="AbstractStudentSubmission[Any]")
+Builder = TypeVar("Builder", bound="AbstractStudentSubmission[Any]")
 
 
 class AbstractStudentSubmission(abc.ABC, Generic[T]):
@@ -18,29 +19,30 @@ class AbstractStudentSubmission(abc.ABC, Generic[T]):
     ===========
 
     This class contains the abstract student submission.
-    Basically, this enables more of a plug and play architechture for different submission models.
+    Basically, this enables more of a plug and play architecture for different submission models.
 
     This model also allows a cleaner and more consistent way to implement validation of the submission.
 
-    You can implement :ref:`AbstractValidator` for your purpose and assign it a hook.
-    Then when we reach that phase of the submission, that hook will be validated.
+    You can implement: ref:`AbstractValidator` for your purpose and assign it a hook.
+    Then, when we reach that phase of the submission, that hook will be validated.
 
     Subclasses must implement ``doLoad`` and ``doBuild``.
     Subclasses must also implement ``getExecutableSubmission`` which should return the submission in a state that can be executed 
     by whatever runner is implemented.
 
-    For an example, take a look at the Python (or coming soon, the C / C++) implementation.
+    For example, take a look at the Python (or coming soon, the C / C++) implementation.
     """
     def __init__(self):
         self.submissionRoot: str = "."
         self.validators: Dict[ValidationHook, Set[AbstractValidator]] = {}
         self.validationErrors: List[Exception] = []
+        self.submissionTransformers: List[ITransformer] = []
 
         # default validators
         self.addValidator(SubmissionPathValidator())
 
 
-    def setSubmissionRoot(self: TBuilder, submissionRoot: str) -> TBuilder:
+    def setSubmissionRoot(self: Builder, submissionRoot: str) -> Builder:
         """
         Description
         ---
@@ -55,7 +57,7 @@ class AbstractStudentSubmission(abc.ABC, Generic[T]):
         self.submissionRoot = submissionRoot
         return self
 
-    def addValidator(self: TBuilder, validator: AbstractValidator) -> TBuilder:
+    def addValidator(self: Builder, validator: AbstractValidator) -> Builder:
         """
         Description
         ---
@@ -68,7 +70,8 @@ class AbstractStudentSubmission(abc.ABC, Generic[T]):
         The hook to use is determined by the abstract static method ``AbstractValidator.getValidationHook()``.
 
         Only one validator of each type is allowed, ie: If we pass two validators of type ValidateAST, 
-        only the last one added will be run. This enforces single responsibity.
+        only the last one added will be run.
+        This enforces the single responsibility principal.
 
         :param validator: the validator to add subject to the above information.
         :returns: self
@@ -80,6 +83,54 @@ class AbstractStudentSubmission(abc.ABC, Generic[T]):
 
         self.validators[hook].add(validator)
         return self
+
+    def addTransformer(self: Builder, transformer: ITransformer) -> Builder:
+        self.submissionTransformers.append(transformer)
+
+        return self
+
+    def runManualValidationHook(self, validatorType: Type[AbstractValidator]):
+        if ValidationHook.MANUAL not in self.validators.keys():
+            raise RuntimeError("Request to run manual hook, but no manual hooks have been defined!")
+
+        ran = False
+        for validator in self.validators[ValidationHook.MANUAL]:
+            if isinstance(validator, validatorType):
+                validator.setup(self)
+                validator.run()
+                self.validationErrors.extend(validator.collectErrors())
+                # we are only allowed to have one of each type, so once we execute, we should break
+                ran = True
+                break
+
+        if not ran:
+            raise RuntimeError(f"Request to run manual hook {validatorType}, but that manual hook has not been defined!")
+
+        if self.validationErrors:
+            raise ValidationError(self.validationErrors)
+
+    def runTransformers(self, submissionText: str) -> str:
+        """
+        Description
+        ---
+
+        Runs all transformers in the order added.
+        This functionality allows the user to mutate student submissions, BUT should be used sparely.
+
+        This is used with the iPython bindings to remove all the magic commands so that cells can be parsed into their
+        AST representation.
+
+        Transformers operate on the entire submission text, so keep that in mind when writing.
+
+        :param submissionText: The student's entire submission text.
+        Generally, should only be one file but is dependent on the implementation.
+        :returns: The transformed submission.
+        """
+
+        for transformer in self.submissionTransformers:
+            submissionText = transformer.transform(submissionText)
+
+        return submissionText
 
     def _validate(self, validationHook: ValidationHook):
         if validationHook not in self.validators.keys():
@@ -102,7 +153,7 @@ class AbstractStudentSubmission(abc.ABC, Generic[T]):
     def doBuild(self):
         raise NotImplementedError()
     
-    def load(self: TBuilder) -> TBuilder:
+    def load(self: Builder) -> Builder:
         """
         Description
         ---
@@ -128,7 +179,7 @@ class AbstractStudentSubmission(abc.ABC, Generic[T]):
         self._validate(ValidationHook.POST_LOAD)
         return self
 
-    def build(self: TBuilder) -> TBuilder:
+    def build(self: Builder) -> Builder:
         """
         Description
         ---
@@ -154,7 +205,7 @@ class AbstractStudentSubmission(abc.ABC, Generic[T]):
         self._validate(ValidationHook.POST_BUILD)
         return self
 
-    def validate(self: TBuilder) -> TBuilder:
+    def validate(self: Builder) -> Builder:
         """
         Description
         ---
