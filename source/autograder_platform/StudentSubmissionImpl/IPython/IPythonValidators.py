@@ -8,9 +8,6 @@ from autograder_platform.StudentSubmission.common import ValidationHook
 from autograder_platform.StudentSubmissionImpl.IPython.common import MissingNotebookFile, TooManyNotebooksError, \
     MissingDependencyError, NoTestableCellsError
 
-from autograder_platform.StudentSubmissionImpl.IPython.common import InvalidPackageError
-
-
 class TestableCellDependencyValidator(AbstractValidator):
     @staticmethod
     def getValidationHook() -> ValidationHook:
@@ -74,35 +71,3 @@ class IPythonFileValidator(AbstractValidator):
             return
         if len(self.files) > 1:
             self.addError(TooManyNotebooksError(self.files))
-
-class PackageValidator(AbstractValidator):
-
-    PYPI_BASE = "https://pypi.org/pypi/"
-
-    @staticmethod
-    def getValidationHook() -> ValidationHook:
-        return ValidationHook.PRE_LOAD
-
-    def __init__(self):
-        super().__init__()
-        self.packages: Dict[str, str] = {}
-
-    def setup(self, studentSubmission):
-        self.packages = studentSubmission.getExtraPackages()
-
-    def run(self):
-        for package, version in self.packages.items():
-            if importlib.util.find_spec(package) is not None:
-                continue
-
-            url = self.PYPI_BASE + package + "/"
-
-            if version:
-                url += version + "/"
-
-            url += "json"
-
-            if requests.get(url=url).status_code == 200:
-                continue
-
-            self.addError(InvalidPackageError(package, version))

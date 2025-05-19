@@ -15,7 +15,9 @@ from autograder_platform.StudentSubmissionImpl.IPython.CellMetadataParser import
 from autograder_platform.StudentSubmissionImpl.IPython.IPythonTransformers import MagicCommandTransformer, \
     MatplotLibFigTransformer
 from autograder_platform.StudentSubmissionImpl.IPython.IPythonValidators import IPythonFileValidator, \
-    TestableCellValidator, TestableCellDependencyValidator, PackageValidator
+    TestableCellValidator, TestableCellDependencyValidator
+
+from autograder_platform.StudentSubmissionImpl.Python.PythonValidators import PackageValidator
 
 Builder = TypeVar("Builder", bound="IPythonSubmission")
 

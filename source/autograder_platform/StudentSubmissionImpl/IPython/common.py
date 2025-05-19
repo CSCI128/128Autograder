@@ -25,10 +25,3 @@ class NoTestableCellsError(Exception):
             "Expected at least one cell to be testable!\n"
             "Currently, no cells are testable, please ensure at least one cell in notebook has 'TestableCell' metadata defined!"
         )
-
-class InvalidPackageError(Exception):
-    def __init__(self, packageName: str, version: str):
-        super().__init__(
-            f"Unable to locate package, '{packageName}' at version "
-            f"{version if version else 'any version'}"
-        )
