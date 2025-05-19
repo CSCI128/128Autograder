@@ -4,6 +4,7 @@ import shutil
 
 from autograder_platform.StudentSubmission.AbstractStudentSubmission import AbstractStudentSubmission
 from autograder_platform.StudentSubmission.AbstractValidator import AbstractValidator
+from autograder_platform.StudentSubmission.ITransformer import ITransformer
 from autograder_platform.StudentSubmission.common import ValidationError, ValidationHook
 
 
@@ -13,7 +14,7 @@ class StudentSubmission(AbstractStudentSubmission[str]):
         self.studentCode: str = "No code"
 
     def doLoad(self):
-        self.studentCode = "Loaded code!"
+        self.studentCode = self.runTransformers("Loaded code!")
 
     def doBuild(self):
         self.studentCode = "Built code!"
@@ -36,7 +37,7 @@ class CodeLoadedValidator(AbstractValidator):
 
     def run(self):
         if not self.code:
-            self.errors.append(Exception("Code was not loaded!"))
+            self.addError(Exception("Code was not loaded!"))
 
 
 class FileExistsValidator(AbstractValidator):
@@ -54,14 +55,41 @@ class FileExistsValidator(AbstractValidator):
 
     def run(self):
         if self.fileName not in self.submissionRoot:
-            self.errors.append(Exception(f"{self.fileName} does not exist!"))
+            self.addError(Exception(f"{self.fileName} does not exist!"))
+
+class ManualValidator(AbstractValidator):
+    @staticmethod
+    def getValidationHook() -> ValidationHook:
+        return ValidationHook.MANUAL
+
+    def __init__(self, raiseError=False):
+        super().__init__()
+        self.called = False
+        self.raiseError = raiseError
+
+    def setup(self, studentSubmission):
+        self.called = True
+
+    def run(self):
+        if not self.called:
+            self.addError(Exception("Setup was not called!"))
+        if self.raiseError:
+            self.addError(Exception("Manual validator error!"))
+
+
+class SimpleTransformer(ITransformer):
+    def __init__(self, textToSet: str):
+        self.textToSet = textToSet
+
+    def transform(self, string: str) -> str:
+        return self.textToSet
 
 
 class TestAbstractStudentSubmission(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.initalDirectory = os.getcwd() 
-        cls.TEST_DIR = os.path.join(cls.initalDirectory, "sandbox")
+        cls.initialDirectory = os.getcwd()
+        cls.TEST_DIR = os.path.join(cls.initialDirectory, "sandbox")
 
     def setUp(self) -> None:
         if os.path.exists(self.TEST_DIR):
@@ -71,7 +99,7 @@ class TestAbstractStudentSubmission(unittest.TestCase):
         os.chdir(self.TEST_DIR)
 
     def tearDown(self) -> None:
-        os.chdir(self.initalDirectory)
+        os.chdir(self.initialDirectory)
 
         if os.path.exists(self.TEST_DIR):
             shutil.rmtree(self.TEST_DIR)
@@ -119,9 +147,106 @@ class TestAbstractStudentSubmission(unittest.TestCase):
         self.assertIn(f"{filename} does not exist", exceptionText)
 
 
+    def testManualValidatorNotCalled(self):
+        manualValidator = ManualValidator()
 
-    
+        submissionRoot = "./submission"
+        os.mkdir(submissionRoot)
+        with open(os.path.join(submissionRoot, "file.txt"), 'w') as w:
+            w.write("FILE!")
 
-    
+        submission = StudentSubmission()\
+            .setSubmissionRoot(submissionRoot) \
+            .addValidator(manualValidator) \
+            .addValidator(CodeLoadedValidator()) \
+            .load() \
+            .build() \
+            .validate()
 
+        self.assertFalse(manualValidator.called)
 
+    def testManualValidatorCalled(self):
+        manualValidator = ManualValidator()
+
+        submissionRoot = "./submission"
+        os.mkdir(submissionRoot)
+        with open(os.path.join(submissionRoot, "file.txt"), 'w') as w:
+            w.write("FILE!")
+
+        submission = StudentSubmission() \
+            .setSubmissionRoot(submissionRoot) \
+            .addValidator(manualValidator) \
+            .addValidator(CodeLoadedValidator()) \
+            .load() \
+            .build() \
+            .validate()
+        submission.runManualValidationHook(ManualValidator)
+
+        self.assertTrue(manualValidator.called)
+
+    def testNoManualValidatorsDefined(self):
+        submissionRoot = "./submission"
+        os.mkdir(submissionRoot)
+        with open(os.path.join(submissionRoot, "file.txt"), 'w') as w:
+            w.write("FILE!")
+
+        submission = StudentSubmission() \
+            .setSubmissionRoot(submissionRoot) \
+            .addValidator(CodeLoadedValidator()) \
+            .load() \
+            .build() \
+            .validate()
+
+        with self.assertRaises(RuntimeError):
+            submission.runManualValidationHook(ManualValidator)
+
+    def testIncorrectManualValidatorCalled(self):
+        manualValidator = ManualValidator()
+        submissionRoot = "./submission"
+        os.mkdir(submissionRoot)
+        with open(os.path.join(submissionRoot, "file.txt"), 'w') as w:
+            w.write("FILE!")
+
+        submission = StudentSubmission() \
+            .setSubmissionRoot(submissionRoot) \
+            .addValidator(CodeLoadedValidator()) \
+            .addValidator(manualValidator) \
+            .load() \
+            .build() \
+            .validate()
+
+        with self.assertRaises(RuntimeError):
+            submission.runManualValidationHook(CodeLoadedValidator)
+
+    def testManualValidatorRaisesError(self):
+        manualValidator = ManualValidator(raiseError=True)
+        submissionRoot = "./submission"
+        os.mkdir(submissionRoot)
+        with open(os.path.join(submissionRoot, "file.txt"), 'w') as w:
+            w.write("FILE!")
+
+        submission = StudentSubmission() \
+            .setSubmissionRoot(submissionRoot) \
+            .addValidator(CodeLoadedValidator()) \
+            .addValidator(manualValidator) \
+            .load() \
+            .build() \
+            .validate()
+
+        with self.assertRaises(ValidationError):
+            submission.runManualValidationHook(ManualValidator)
+
+    def testRunTransformer(self):
+        expected = "this was transformed!"
+
+        submissionRoot = "./submission"
+        os.mkdir(submissionRoot)
+        with open(os.path.join(submissionRoot, "file.txt"), 'w') as w:
+            w.write("FILE!")
+
+        submission = StudentSubmission() \
+            .setSubmissionRoot(submissionRoot) \
+            .addTransformer(SimpleTransformer(expected))\
+            .load()
+
+        self.assertEqual(expected, submission.getExecutableSubmission())

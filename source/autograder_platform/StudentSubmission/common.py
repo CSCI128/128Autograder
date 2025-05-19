@@ -8,6 +8,7 @@ class ValidationHook(Enum):
     PRE_BUILD = 3
     POST_BUILD = 4
     VALIDATION = 5
+    MANUAL = 6
 
 
 class MissingFunctionDefinition(Exception):
@@ -20,10 +21,10 @@ class MissingFunctionDefinition(Exception):
         self.functionName = functionName
 
     # https://stackoverflow.com/questions/16244923/how-to-make-a-custom-exception-class-with-multiple-init-args-pickleable
-    # Basically - reduce has to return something that we constuct the og class from
+    # Basically - reduce has to return something that we construct the og class from
     def __reduce__(self):
         # Need to be (something,) so that it actually gets processed as a tuple in the pickler
-        return (MissingFunctionDefinition, (self.functionName,))
+        return MissingFunctionDefinition, (self.functionName,)
 
 
 class InvalidTestCaseSetupCode(Exception):
