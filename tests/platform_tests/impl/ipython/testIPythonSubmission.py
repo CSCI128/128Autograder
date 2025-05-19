@@ -306,3 +306,124 @@ print(value)
 
         # we are going to assume that the generation worked and nbconvert doesn't gaslight us
         self.assertIsNotNone(html)
+
+    def testTransformMagicCommand(self):
+        NotebookBuilder("notebook.ipynb", self.TEST_FILE_DIRECTORY)\
+            .addCodeCell(
+            """
+from autograder_platform.StudentSubmissionImpl.IPython.metadata import Cell, TestableCell
+TestableCell(id="testable", deps=[])
+%matplotlib inline
+!pip install yippee
+            """)\
+            .toFile()
+
+        submission = IPythonSubmission() \
+            .setSubmissionRoot(self.TEST_FILE_DIRECTORY) \
+            .load()
+
+        cell = submission.getCells()["testable"]
+
+        self.assertNotIn("%", cell.code)
+        self.assertNotIn("!", cell.code)
+
+
+    def testTransformMatplotlibShow(self):
+        NotebookBuilder("notebook.ipynb", self.TEST_FILE_DIRECTORY) \
+            .addCodeCell(
+            """
+from autograder_platform.StudentSubmissionImpl.IPython.metadata import Cell, TestableCell
+import matplotlib.pyplot as plt
+TestableCell(id="testable", deps=[])
+plt.show()
+matplotlib.pyplot.show()
+            """) \
+            .toFile()
+
+        submission = IPythonSubmission() \
+            .setSubmissionRoot(self.TEST_FILE_DIRECTORY) \
+            .load()
+
+        cell = submission.getCells()["testable"]
+
+        self.assertNotIn("show()", cell.code)
+        self.assertIn("fig_1.png", cell.code)
+        self.assertIn("fig_2.png", cell.code)
+
+    def testVerifyIgnoresHiddenCacheAndSpacedFiles(self):
+        os.makedirs(os.path.join(self.TEST_FILE_DIRECTORY, "dir", "__pycache__"))
+
+        NotebookBuilder(".notebook.ipynb", self.TEST_FILE_DIRECTORY) \
+            .addCodeCell(self.VALID_TESTABLE_CELL)\
+            .toFile()
+
+        NotebookBuilder("a notebook.ipynb", self.TEST_FILE_DIRECTORY) \
+            .addCodeCell(self.VALID_TESTABLE_CELL) \
+            .toFile()
+
+        NotebookBuilder("a notebook.ipynb", self.TEST_FILE_DIRECTORY) \
+            .addCodeCell(self.VALID_TESTABLE_CELL) \
+            .toFile()
+
+        NotebookBuilder("notebook.ipynb", self.TEST_FILE_DIRECTORY) \
+            .addCodeCell(self.VALID_TESTABLE_CELL) \
+            .toFile()
+
+        submission = IPythonSubmission() \
+            .setSubmissionRoot(self.TEST_FILE_DIRECTORY)\
+            .load()
+
+        cells = submission.getCells()
+
+        self.assertEqual(1, len(cells))
+
+
+    @patch("sys.stdout", new_callable=StringIO)
+    def testInstallPackages(self, capturedStdout):
+        NotebookBuilder("notebook.ipynb", self.TEST_FILE_DIRECTORY) \
+            .addCodeCell("""
+from autograder_platform.StudentSubmissionImpl.IPython.metadata import TestableCell
+TestableCell(id="testable", deps=[])
+import pip_install_test
+            """) \
+            .toFile()
+
+        submission = IPythonSubmission() \
+            .setSubmissionRoot(self.TEST_FILE_DIRECTORY) \
+            .addPackages([
+                {"name": "pip-install-test", "version": "0.5"},
+                {"name": "minimal", "version": ""}
+            ])\
+            .load()\
+            .build()\
+            .validate()
+
+        exec(submission.getExecutableSubmission())
+
+        self.assertIn("good job", capturedStdout.getvalue().lower())
+
+        submission.TEST_ONLY_removeRequirements()
+
+    def testPackageDNE(self):
+        NotebookBuilder("notebook.ipynb", self.TEST_FILE_DIRECTORY) \
+            .addCodeCell("""
+from autograder_platform.StudentSubmissionImpl.IPython.metadata import TestableCell
+TestableCell(id="testable", deps=[])
+import pip_install_test
+            """) \
+            .toFile()
+
+        with self.assertRaises(ValidationError) as ex:
+            IPythonSubmission() \
+                .setSubmissionRoot(self.TEST_FILE_DIRECTORY) \
+                .addPackages([
+                {"name": "dne", "version": "0.5"},
+                {"name": "dne2", "version": ""},
+            ]) \
+                .load() \
+                .build()
+
+        msg = str(ex.exception)
+
+        self.assertIn("Unable to locate package, 'dne'", msg)
+        self.assertIn("Unable to locate package, 'dne2'", msg)

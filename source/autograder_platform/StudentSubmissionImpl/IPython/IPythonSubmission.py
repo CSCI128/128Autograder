@@ -79,9 +79,6 @@ class IPythonSubmission(AbstractStudentSubmission[CodeType]):
 
     def _parseCells(self, notebook: NotebookNode):
         for cell in notebook.cells:
-            if "cell_type" not in cell or "source" not in cell:
-                continue
-
             if cell["cell_type"] != "code":
                 continue
 

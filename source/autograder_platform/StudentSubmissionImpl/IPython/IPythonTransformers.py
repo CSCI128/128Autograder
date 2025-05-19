@@ -25,7 +25,7 @@ class MatplotLibFigTransformer(ITransformer):
         transformed = []
         for line in string.splitlines():
             if self.FIG_SHOW_PATTERN.match(line.strip()):
-                line.replace("show()", f"savefig('fig_{curFigNumber}.png')")
+                line = line.replace("show()", f"savefig('fig_{curFigNumber}.png')")
                 curFigNumber += 1
 
             transformed.append(line)
