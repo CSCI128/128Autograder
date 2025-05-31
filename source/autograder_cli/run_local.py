@@ -146,7 +146,7 @@ class LocalAutograderCLI(AutograderCLITool):
 
     def compare_autograder_versions(self, required_version: str) -> bool:
         version = list(map(int, required_version.split(".")))
-        actual_version = list(map(int, self.get_version().split(".")))
+        actual_version = list(map(int, self.get_version().split(".")[:3]))
 
         status = False
         if version[0] != actual_version[0]:
@@ -224,6 +224,9 @@ class LocalAutograderCLI(AutograderCLITool):
                                  help="Bypass autograder version verification. Note: This may cause the autograder to fail!")
         self.parser.add_argument("--version", action="store_true", default=False, help="Print out version and exit")
 
+        self.parser.add_argument("--bypass-submission-check", action="store_true", default=False,
+                                 help="Bypass submission presence check. Note: This may cause the autograder to fail!")
+
     def set_config_arguments(self, configBuilder: AutograderConfigurationBuilder[AutograderConfiguration]):  # pragma: no cover
         pass
 
@@ -259,10 +262,11 @@ class LocalAutograderCLI(AutograderCLITool):
                                          "Update failed! Please see above for failure reason or rerun as 'test_my_work --bypass-version-check'")
                 return True
 
-        if not self.verify_student_work_present(os.path.join(root_directory, self.arguments.submission_directory)):
+        if not self.arguments.bypass_submission_check and not self.verify_student_work_present(os.path.join(root_directory, self.arguments.submission_directory)):
             return True
 
-        fileChanged = self.verify_file_changed(os.path.join(root_directory, self.arguments.submission_directory))
+        # assume submission has changed if we are disabling submission checks
+        fileChanged = self.verify_file_changed(os.path.join(root_directory, self.arguments.submission_directory)) if not self.arguments.bypass_submission_check else True
 
         self.config = AutograderConfigurationBuilder() \
             .fromTOML(self.config_location) \
