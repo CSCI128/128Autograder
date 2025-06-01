@@ -7,7 +7,7 @@
     exclude = ["tests"]
 
 [tool.setuptools.dynamic]
-    version = {attr = "autograder_binds.Python.__version__"}
+    version = {attr = "language_binds.Python.__version__"}
 
 
 [project]
