@@ -1,15 +1,13 @@
 import unittest
-import os
 from autograder_utils.Decorators import Weight, ImageResult
 
 from autograder_platform.Executors.Executor import Executor
 from autograder_platform.Executors.Environment import ExecutionEnvironmentBuilder, getResults, Results
-from autograder_platform.StudentSubmissionImpl.IPython import IPythonSubmission
-from autograder_platform.StudentSubmissionImpl.Python import PythonEnvironment
+from language_binds.ipython.source.autograder_binds.IPython import IPythonSubmission
 from autograder_platform.StudentSubmissionImpl.Python.PythonEnvironment import PythonEnvironmentBuilder, PythonResults
 from autograder_platform.TestingFramework.SingleFunctionMock import SingleFunctionMock
 from autograder_platform.config.Config import AutograderConfigurationProvider
-from autograder_platform.StudentSubmissionImpl.Python.Runners import PythonRunnerBuilder
+from autograder_platform.StudentSubmissionImpl.Python import PythonRunnerBuilder
 
 
 class IPythonExecution(unittest.TestCase):

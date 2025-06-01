@@ -1,0 +1,9 @@
+from autograder_platform.StudentSubmission.SubmissionProcessFactory import SubmissionProcessFactory
+from autograder_binds.Python.PythonEnvironment import PythonEnvironment, configMapper
+
+from autograder_binds.Python.PythonSubmission import PythonSubmission
+from autograder_binds.Python.PythonSubmissionProcess import RunnableStudentSubmission
+
+SubmissionProcessFactory.register(PythonSubmission, RunnableStudentSubmission, PythonEnvironment, configMapper)
+
+__version__ = "5.2.1"

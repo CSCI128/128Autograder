@@ -1,7 +1,0 @@
-from autograder_platform.StudentSubmission.SubmissionProcessFactory import SubmissionProcessFactory
-from autograder_platform.StudentSubmissionImpl.Python.PythonEnvironment import PythonEnvironment, configMapper
-
-from autograder_platform.StudentSubmissionImpl.IPython.IPythonSubmission import IPythonSubmission
-from autograder_platform.StudentSubmissionImpl.Python.PythonSubmissionProcess import RunnableStudentSubmission
-
-SubmissionProcessFactory.register(IPythonSubmission, RunnableStudentSubmission, PythonEnvironment, configMapper)

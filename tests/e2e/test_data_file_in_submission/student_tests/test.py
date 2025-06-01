@@ -6,7 +6,7 @@ from autograder_platform.Executors.Executor import Executor
 from autograder_platform.Executors.Environment import ExecutionEnvironmentBuilder, getResults
 from autograder_platform.StudentSubmissionImpl.Python import PythonSubmission
 from autograder_platform.config.Config import AutograderConfigurationProvider
-from autograder_platform.StudentSubmissionImpl.Python.Runners import PythonRunnerBuilder
+from autograder_platform.StudentSubmissionImpl.Python import PythonRunnerBuilder
 
 
 class DataFilesTest(unittest.TestCase):

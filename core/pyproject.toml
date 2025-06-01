@@ -1,0 +1,51 @@
+[build-system]
+    requires = ["setuptools >= 61"]
+    build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+    where=["source"]
+    exclude =["tests"]
+
+[tool.setuptools.dynamic]
+    version = {attr = "autograder_platform.__version__"}
+
+[project]
+    name = "128Autograder"
+    authors = [
+        { name = "Gregory Bell" }
+    ]
+    maintainers = [
+        { name = "Gregory Bell" }
+    ]
+
+    dynamic = ["version"]
+
+    requires-python = ">=3.11.0"
+
+    dependencies = [
+        "HybridJSONTestRunner==0.8.1",
+        "dill==0.3.9",
+        "Better-PyUnit-Format==0.2.3",
+        "schema==0.7.5",
+        "requests==2.31.0",
+        "tomli==2.0.1",
+    ]
+
+[project.optional-dependencies]
+    dev = [
+        "coverage[toml]",
+        "build",
+    ]
+    ipython = [
+        "nbformat",
+        "nbconvert"
+    ]
+
+[project.scripts]
+    run_gradescope = "autograder_cli.run_gradescope:tool"
+    run_prairielearn = "autograder_cli.run_prairielearn:tool"
+    test_my_work = "autograder_cli.run_local:tool"
+    run_autograder = "autograder_cli.run_local:tool"
+    create_gradescope_upload = "autograder_cli.create_upload:tool"
+    build_autograder = "autograder_cli.build_autograder:tool"
+

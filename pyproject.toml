@@ -1,101 +1,54 @@
 [build-system]
-    requires = ["setuptools >= 61"]
-    build-backend = "setuptools.build_meta"
-
-[tool.setuptools.packages.find]
-    where=["source"]
-    exclude =["tests"]
-
-[tool.setuptools.dynamic]
-    version = {attr = "autograder_platform.__version__"}
-
-[project]
-    name = "128Autograder"
-    authors = [
-        { name = "Gregory Bell" }
-    ]
-    maintainers = [
-        { name = "Gregory Bell" }
-    ]
-
-    dynamic = ["version"]
-
-    requires-python = ">=3.11.0"
-
-    dependencies = [
-        "HybridJSONTestRunner==0.8.1",
-        "dill==0.3.9",
-        "Better-PyUnit-Format==0.2.3",
-        "schema==0.7.5",
-        "requests==2.31.0",
-        "tomli==2.0.1",
-    ]
-
-[project.optional-dependencies]
-    dev = [
-        "coverage[toml]",
-        "build",
-    ]
-    ipython = [
-        "nbformat",
-        "nbconvert"
-    ]
-
-[project.scripts]
-    run_gradescope = "autograder_cli.run_gradescope:tool"
-    run_prairielearn = "autograder_cli.run_prairielearn:tool"
-    test_my_work = "autograder_cli.run_local:tool"
-    run_autograder = "autograder_cli.run_local:tool"
-    create_gradescope_upload = "autograder_cli.create_upload:tool"
-    build_autograder = "autograder_cli.build_autograder:tool"
+requires = ["setuptools >= 61"]
+build-backend = "setuptools.build_meta"
 
 [tool.pyright]
-    include = ["source"]
+include = ["source"]
 
-    exclude = ["**__pycache__**"]
-    scrict = ["."]
+exclude = ["**__pycache__**"]
+scrict = ["."]
 
-    executionEnvironments = [
-        { root = "tests", extraPaths = ["source", "source/utils/student", "source/utils"] }
-    ]
+executionEnvironments = [
+    { root = "tests", extraPaths = ["source", "source/utils/student", "source/utils"] }
+]
 
 [tool.coverage.run]
-    command_line = "-m unittest"
-    concurrency = ["multiprocessing"]
-    # Omit testing files, omit dynamic files, omit __init__.py
-    # Doing it at the run level as it will that means they wont be run in the first place
-    # Ignore build.py as its it is primarly covered by integration tests
-    omit = [
-        # TODO write unit tests for the CLI
-        # shouldnt be ignoring them, but also this needs to get out the door
-        # Technically the CLIs are covered via the e2e tests, and we dont seem to have a hole there anymore
-        "source/autograder_cli/*",
-        "sandbox/*",
-        "testPrograms/*",
-        "test_code",
-        "test_code.py",
-        "setup_code",
-        "tests/*",
-        "*/student_submission",
-        "__init__.py",
-        "Build.py",
-        "INJECTED_*",
-        "__getstate__*",
-        "__setstate__*",
-    ]
+command_line = "-m unittest"
+concurrency = ["multiprocessing"]
+# Omit testing files, omit dynamic files, omit __init__.py
+# Doing it at the run level as it will that means they wont be run in the first place
+# Ignore build.py as its it is primarly covered by integration tests
+omit = [
+    # TODO write unit tests for the CLI
+    # shouldnt be ignoring them, but also this needs to get out the door
+    # Technically the CLIs are covered via the e2e tests, and we dont seem to have a hole there anymore
+    "source/autograder_cli/*",
+    "sandbox/*",
+    "testPrograms/*",
+    "test_code",
+    "test_code.py",
+    "setup_code",
+    "tests/*",
+    "*/student_submission",
+    "__init__.py",
+    "Build.py",
+    "INJECTED_*",
+    "__getstate__*",
+    "__setstate__*",
+]
 
 [tool.coverage.report]
-    fail_under = 90
-    skip_empty = true
-    exclude_also = [
-        # Dont flag error conditions that cant be reached or that are just defensive
-        "raise AssertionError",
-        "raise NotImplementedError",
-        "raise EnvironmentError",
-        "raise AttributeError",
-        "raise InvalidRunner",
-        "if __name__ == .__main__.:",
-        # Don't complain about abstract methods, they aren't run:
-        "@(abc\\.)?abstractmethod",
-    ]
+fail_under = 90
+skip_empty = true
+exclude_also = [
+    # Dont flag error conditions that cant be reached or that are just defensive
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "raise EnvironmentError",
+    "raise AttributeError",
+    "raise InvalidRunner",
+    "if __name__ == .__main__.:",
+    # Don't complain about abstract methods, they aren't run:
+    "@(abc\\.)?abstractmethod",
+]
 

@@ -7,13 +7,13 @@ ARG TAG=latest
 FROM ${BASE_REPO}:${TAG}
 
 ADD source/setup.sh /autograder/setup.sh
-ADD ../source/requirements.txt /autograder/source/requirements.txt
+ADD ../core/source/requirements.txt /autograder/source/requirements.txt
 
 RUN apt update && \
     sh /autograder/setup.sh \
     apt clean
 
-ADD ../source /autograder/source
+ADD ../core/source /autograder/source
 
 RUN cp /autograder/source/run_autograder /autograder/run_autograder
 
