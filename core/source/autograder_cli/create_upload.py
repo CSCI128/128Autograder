@@ -72,7 +72,7 @@ def generateZipFile(_submissionDirectory: str) -> None:
 
     with ZipFile(zipName, 'w') as submissionZip:
         os.chdir(_submissionDirectory)
-        for file in os.listdir(""):
+        for file in os.listdir("."):
             if os.path.isfile(file) and file[-3:] == ".py":
                 print(f"\tAdding {_submissionDirectory + file} to zip...")
                 submissionZip.write(file)

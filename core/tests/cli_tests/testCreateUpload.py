@@ -30,7 +30,7 @@ class TestStudentCreateGradescopeUpload(unittest.TestCase):
         shutil.rmtree(self.STUDENT_WORK_FOLDER)
 
         # clean up any zip files
-        for file in os.listdir(""):
+        for file in os.listdir("."):
             if os.path.isfile(file) and file[-4:] == ".zip":
                 os.remove(file)
 

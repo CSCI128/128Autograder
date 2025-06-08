@@ -22,8 +22,25 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install -e '.[ipython]'
+          cd core
+          pip install -e '.[dev]'
+          cd ../languages/ipython
+          pip install -e .
+          cd ../python
+          pip install -e .
 
-      - name: Test with PyUnit
-        run:
+      - name: Core Tests
+        run: |
+          cd core
           python3 -m unittest
+
+      - name: IPython Tests
+        run: |
+          cd languages/ipython
+          python3 -m unittest
+
+      - name: Python Tests
+        run: |
+          cd languages/python
+          python3 -m unittest
+          

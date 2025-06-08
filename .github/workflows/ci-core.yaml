@@ -11,6 +11,9 @@ env:
 jobs:
   unit-tests:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: core
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
@@ -20,7 +23,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install -e '.[dev,ipython]'
+          pip install -e '.[dev]'
 
       - name: Test with PyUnit and collect coverage
         run: |
@@ -54,7 +57,7 @@ jobs:
       - name: Verify test outputs
         run: bash tests/e2e/verify.sh
 
-  build-and-push-image-generic:
+  build-and-push-image-core:
     if: ${{ startsWith(github.ref, 'refs/tags/v') || startsWith(github.ref, 'refs/heads/main') }}
     needs: [ unit-tests, e2e-tests ]
     runs-on: ubuntu-latest
@@ -76,7 +79,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/generic
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/core
       - name: Build and push Docker image
         id: push
         uses: docker/build-push-action@v6
@@ -89,7 +92,7 @@ jobs:
       - name: Generate artifact attestation
         uses: actions/attest-build-provenance@v1
         with:
-          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}/generic
+          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}/core
           subject-digest: ${{ steps.push.outputs.digest }}
           push-to-registry: true
 
@@ -97,6 +100,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       id-token: write
+    defaults:
+      run:
+        working-directory: core
     if: ${{ startsWith(github.ref, 'refs/tags/v') }}
     needs: [ unit-tests, e2e-tests ]
     steps:

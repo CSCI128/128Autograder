@@ -1,7 +1,7 @@
 services:
   test_many_non_main_files:
     build:
-      dockerfile: docker/generic.dockerfile
+      dockerfile: docker/core.dockerfile
       context: .
     entrypoint:
       - run_gradescope
@@ -15,7 +15,7 @@ services:
 
   test_requirements_in_submission:
     build:
-      dockerfile: docker/generic.dockerfile
+      dockerfile: docker/core.dockerfile
       context: .
     entrypoint:
       - run_gradescope
@@ -40,7 +40,7 @@ services:
 
   test_metadata_attack:
     build:
-      dockerfile: docker/generic.dockerfile
+      dockerfile: docker/core.dockerfile
       context: .
     entrypoint:
       - run_gradescope
@@ -57,7 +57,7 @@ services:
 
   test_data_file_in_submission:
     build:
-      dockerfile: docker/generic.dockerfile
+      dockerfile: docker/core.dockerfile
       context: .
     entrypoint:
       - run_gradescope
@@ -71,7 +71,7 @@ services:
 
   test_build:
     build:
-      dockerfile: docker/generic.dockerfile
+      dockerfile: docker/core.dockerfile
       context: .
     entrypoint: build_autograder
     working_dir: /autograder/source
@@ -86,7 +86,7 @@ services:
 
   test_run_local:
     build:
-      dockerfile: docker/generic.dockerfile
+      dockerfile: docker/core.dockerfile
       context: .
     entrypoint: ["sh", "/app/entrypoint.sh"]
     working_dir: /app/source
@@ -99,7 +99,7 @@ services:
 
   test_run_local_nested:
     build:
-      dockerfile: docker/generic.dockerfile
+      dockerfile: docker/core.dockerfile
       context: .
     entrypoint: ["sh", "/app/entrypoint.sh"]
     working_dir: /app/source
@@ -112,7 +112,7 @@ services:
 
   test_run_with_prairie_learn:
     build:
-      dockerfile: docker/generic.dockerfile
+      dockerfile: docker/core.dockerfile
       context: .
     entrypoint: run_prairielearn
     command:
@@ -128,7 +128,7 @@ services:
 
   test_ipython_execution:
     build:
-      dockerfile: docker/generic.dockerfile
+      dockerfile: docker/core.dockerfile
       context: .
     entrypoint:
       - run_gradescope
