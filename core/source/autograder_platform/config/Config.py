@@ -1,12 +1,14 @@
 import importlib
 import os
-from typing import Dict, Generic, List, Optional as OptionalType, TypeVar, Any
+from typing import Dict, Generic, Optional as OptionalType, TypeVar, Any
 from dataclasses import dataclass
 
-from schema import And, Optional, Or, Regex, Schema, SchemaError
+from schema import And, Optional, Regex, Schema, SchemaError
 
-from autograder_platform.config.common import BaseSchema, MissingParsingLibrary, InvalidConfigException
+from autograder_platform.config.common import MissingParsingLibrary, InvalidConfigException
+from autograder_platform.config.BaseSchema import BaseSchema
 
+LanguageConfigType = TypeVar('LanguageConfigType')
 
 @dataclass(frozen=True)
 class BuildConfiguration:
@@ -39,48 +41,6 @@ class BuildConfiguration:
     public_tests_regex: str
     """The pattern that should be used to identify public tests"""
 
-
-@dataclass(frozen=True)
-class PythonConfiguration:
-    """
-    Python Configuration
-    ====================
-
-    This class defines extra parameters for when the autograder is running in Python
-    """
-    extra_packages: List[Dict[str, str]]
-    """
-    The extra packages that should be added to the autograder on build.
-    Must be stored in 'package_name': 'version'. Similar to requirements.txt 
-    """
-    buffer_size: int
-    """
-    The size of the output buffer when the autograder runs
-    """
-
-@dataclass(frozen=True)
-class CConfiguration:
-    """
-    C/C++/C-Like Configuration
-    ==========================
-
-    This defines the extra parameters for when the autograder is running for c like languages
-    """
-
-    use_makefile: bool
-    """
-    If a makefile should be used for building
-    """
-    clean_target: str
-    """
-    The target that should be used to clean. Invoked as `make {clean_target}`
-    """
-    submission_name: str
-    """
-    The file name that should be executed
-    """
-
-
 @dataclass(frozen=True)
 class BasicConfiguration:
     """
@@ -89,8 +49,8 @@ class BasicConfiguration:
 
     This class defines the basic autograder configuration
     """
-    impl_to_use: str
-    """The StudentSubmission Implementation to use"""
+    language_to_use: str
+    """The language to use"""
     student_submission_directory: str
     """The folder that the student submission is in"""
     autograder_version: str
@@ -112,14 +72,9 @@ class BasicConfiguration:
     The max score that students can get with extra credit. 
     Points greater than this will not be honored.
     """
-    python: OptionalType[PythonConfiguration] = None
-    """Extra python specific configuration. See :ref:`PythonConfiguration` for options"""
-    c: OptionalType[CConfiguration] = None
-    """Extra C/C-like specific configuration. See :ref:`CConfiguration` for options"""
-
 
 @dataclass(frozen=True)
-class AutograderConfiguration:
+class AutograderConfiguration(Generic[LanguageConfigType]):
     """
     Autograder Configuration
     ========================
@@ -136,6 +91,8 @@ class AutograderConfiguration:
     """The autograder's root directory where the config.toml file is located"""
     config: BasicConfiguration
     """The basic settings for the autograder. See :ref:`BasicConfiguration` for options."""
+    language_config: OptionalType[LanguageConfigType]
+    """The language config for the autograder. See the the language's config for options."""
     build: BuildConfiguration
     """The build configuration for the autograder. See :ref:`BuildConfiguration` for options."""
 
@@ -151,6 +108,7 @@ class AutograderConfigurationSchema(BaseSchema[AutograderConfiguration]):
 
     This class builds to: ref:`AutograderConfiguration` for easy typing.
     """
+
     IMPL_SOURCE = "StudentSubmissionImpl"
 
     @staticmethod
@@ -168,7 +126,7 @@ class AutograderConfigurationSchema(BaseSchema[AutograderConfiguration]):
                 "semester": And(str, Regex(r"^(F|S|SUM)\d{2}$")),
                 Optional("autograder_root", default="."): And(os.path.exists, os.path.isdir, lambda path: "config.toml" in os.listdir(path)),
                 "config": {
-                    "impl_to_use": And(str, AutograderConfigurationSchema.validateImplSource),
+                    "language_to_use": And(str, AutograderConfigurationSchema.validateImplSource),
                     Optional("student_submission_directory", default="."): And(str, os.path.exists, os.path.isdir),
                     "autograder_version": And(str, Regex(r"\d+\.\d+\.\d+")),
                     "test_directory": And(str, os.path.exists),
@@ -178,18 +136,6 @@ class AutograderConfigurationSchema(BaseSchema[AutograderConfiguration]):
                     Optional("allow_extra_credit", default=False): bool,
                     "perfect_score": And(int, lambda x: x >= 1),
                     "max_score": And(int, lambda x: x >= 1),
-                    Optional("python", default=None): Or({
-                        Optional("extra_packages", default=lambda: []): [{
-                            "name": str,
-                            "version": str,
-                        }],
-                        Optional("buffer_size", default=2 ** 20): And(int, lambda x: x >= 2 ** 20)
-                    }, None),
-                    Optional("c", default=None): Or({
-                        "use_makefile": bool,
-                        "clean_target": str,
-                        "submission_name": And(str, lambda x: len(x) >= 1)
-                    }, None),
                 },
                 "build": {
                     "use_starter_code": bool,
@@ -205,7 +151,7 @@ class AutograderConfigurationSchema(BaseSchema[AutograderConfiguration]):
                     Optional("public_tests_regex", default=r"^test_?\w*\.py$"): str,
                 }
             },
-            ignore_extra_keys=False, name="ConfigSchema"
+            ignore_extra_keys=True, name="ConfigSchema"
         )
 
     def validate(self, data: Dict) -> Dict:
@@ -225,6 +171,9 @@ class AutograderConfigurationSchema(BaseSchema[AutograderConfiguration]):
         except SchemaError as schemaError:
             raise InvalidConfigException(str(schemaError))
 
+        if validated['language_to_use'] in self._registered_sub_schemas:
+            validated = self._registered_sub_schemas[validated['language_to_use']].validate(validated)
+
         impl_to_use = validated["config"]["impl_to_use"].lower()
 
         if impl_to_use not in validated["config"] or validated["config"][impl_to_use] is None:
@@ -238,22 +187,24 @@ class AutograderConfigurationSchema(BaseSchema[AutograderConfiguration]):
 
         return validated
 
-    def build(self, data: Dict) -> AutograderConfiguration:
+    def build(self, data: Dict) -> AutograderConfiguration[LanguageConfigType]:
         """
         Description
         ---
         This method builds the provided data into the known config format.
 
         In this case, it builds into the ``AutograderConfiguration`` format.
-        Data should be validated before calling this method as it uses dictionary expandsion to populate the config objects.
+        Data should be validated before calling this method as it uses dictionary expansion to populate the config objects.
 
         Doing this allows us to have a strongly typed config format to be used later in the autograder.
         """
-        if data["config"]["python"] is not None:
-            data["config"]["python"] = PythonConfiguration(**data["config"]["python"])
 
-        if data["config"]["c"] is not None:
-            data["config"]["c"] = CConfiguration(**data["config"]["c"])
+        language_config: OptionalType[LanguageConfigType] = None
+
+        if data['language_to_use'] in self._registered_sub_schemas:
+            language_config = self._registered_sub_schemas[data['language_to_use']].validate(data)
+
+        data['language_config'] = language_config
 
         data["config"] = BasicConfiguration(**data["config"])
         data["build"] = BuildConfiguration(**data["build"])

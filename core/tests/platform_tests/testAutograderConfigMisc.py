@@ -5,7 +5,7 @@ from typing import Dict, List
 import unittest
 
 from autograder_platform.config.Config import AutograderConfigurationBuilder, AutograderConfigurationProvider
-from autograder_platform.config.common import BaseSchema
+from autograder_platform.config.BaseSchema import BaseSchema
 
 
 @dataclass

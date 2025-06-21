@@ -12,13 +12,12 @@ class TestAutograderConfigurationSchema(unittest.TestCase):
             "assignment_name": "HelloWold",
             "semester": "F99",
             "config": {
-                "impl_to_use": "Python",
+                "language_to_use": "undefined",
                 "autograder_version": "2.0.0",
                 "test_directory": ".",
                 "enforce_submission_limit": True,
                 "perfect_score": 10,
                 "max_score": 10,
-                "python": {},
             },
             "build": {
                 "use_starter_code": False,
@@ -33,14 +32,14 @@ class TestAutograderConfigurationSchema(unittest.TestCase):
         return AutograderConfigurationSchema()
 
     def testValidNoOptionalFields(self):
-        schema = self.createAutograderConfigurationSchema()
+        schema = AutograderConfigurationSchema()
 
         actual = schema.validate(self.configFile)
         self.assertIn("submission_limit", actual["config"])
         self.assertIn("buffer_size", actual["config"]["python"])
 
     def testValidOptionalFields(self):
-        schema = self.createAutograderConfigurationSchema()
+        schema = AutograderConfigurationSchema()
 
         self.configFile["config"]["python"] = {}
         actual = schema.validate(self.configFile)
@@ -48,7 +47,7 @@ class TestAutograderConfigurationSchema(unittest.TestCase):
         self.assertIn("buffer_size", actual["config"]["python"])
 
     def testInvalidOptionalFields(self):
-        schema = self.createAutograderConfigurationSchema()
+        schema = AutograderConfigurationSchema()
 
         self.configFile["config"]["python"] = {}
         self.configFile["config"]["python"]["extra_packages"] = [{"name": "package"}]
@@ -56,7 +55,7 @@ class TestAutograderConfigurationSchema(unittest.TestCase):
             schema.validate(self.configFile)
 
     def testValidOptionalNestedFields(self):
-        schema = self.createAutograderConfigurationSchema()
+        schema = AutograderConfigurationSchema()
 
         self.configFile["config"]["python"] = {}
         packages = [{"name": "package", "version": "1.0.0"}]
@@ -69,7 +68,7 @@ class TestAutograderConfigurationSchema(unittest.TestCase):
         self.assertEqual(2*2**20, actual["config"]["python"]["buffer_size"])
 
     def testExtraFields(self):
-        schema = self.createAutograderConfigurationSchema()
+        schema = AutograderConfigurationSchema()
 
         self.configFile["new_field"] = "This field shouldn't exist"
 
@@ -77,7 +76,7 @@ class TestAutograderConfigurationSchema(unittest.TestCase):
             schema.validate(self.configFile)
 
     def testInvalidAutograderVersion(self):
-        schema = self.createAutograderConfigurationSchema()
+        schema = AutograderConfigurationSchema()
 
         self.configFile["config"]["autograder_version"] = "0.0"
 
@@ -85,7 +84,7 @@ class TestAutograderConfigurationSchema(unittest.TestCase):
             schema.validate(self.configFile)
 
     def testBuildNoOptional(self):
-        schema = self.createAutograderConfigurationSchema()
+        schema = AutograderConfigurationSchema()
 
         data = schema.validate(self.configFile)
 
@@ -95,7 +94,7 @@ class TestAutograderConfigurationSchema(unittest.TestCase):
         self.assertEqual(1000, actual.config.submission_limit)
 
     def testBuildWithOptional(self):
-        schema = self.createAutograderConfigurationSchema()
+        schema = AutograderConfigurationSchema()
 
         self.configFile["config"]["python"] = {}
 
@@ -110,7 +109,7 @@ class TestAutograderConfigurationSchema(unittest.TestCase):
 
     @unittest.skip("C is no longer supported")
     def testBuildWithCImpl(self):
-        schema = self.createAutograderConfigurationSchema()
+        schema = AutograderConfigurationSchema()
         self.configFile["config"]["impl_to_use"] = "C"
         self.configFile["config"]["c"] = {}
         self.configFile["config"]["c"]["use_makefile"] = True
@@ -129,7 +128,7 @@ class TestAutograderConfigurationSchema(unittest.TestCase):
         self.assertIsNotNone(actual.config.c.submission_name)
 
     def testBuildWithCImplInvalidName(self):
-        schema = self.createAutograderConfigurationSchema()
+        schema = AutograderConfigurationSchema()
         self.configFile["config"]["impl_to_use"] = "C"
 
         self.configFile["config"]["c"] = {}
@@ -141,7 +140,7 @@ class TestAutograderConfigurationSchema(unittest.TestCase):
             schema.validate(self.configFile)
 
     def testMissingLocationStarterCode(self):
-        schema = self.createAutograderConfigurationSchema()
+        schema = AutograderConfigurationSchema()
 
         self.configFile["build"]["use_starter_code"] = True
 
@@ -149,7 +148,7 @@ class TestAutograderConfigurationSchema(unittest.TestCase):
             schema.validate(self.configFile)
 
     def testMissingLocationDataFiles(self):
-        schema = self.createAutograderConfigurationSchema()
+        schema = AutograderConfigurationSchema()
 
         self.configFile["build"]["use_data_files"] = True
 
@@ -157,7 +156,7 @@ class TestAutograderConfigurationSchema(unittest.TestCase):
             schema.validate(self.configFile)
 
     def testMissingImplConfig(self):
-        schema = self.createAutograderConfigurationSchema()
+        schema = AutograderConfigurationSchema()
 
         self.configFile["config"]["python"] = None  # type: ignore
 
@@ -175,7 +174,7 @@ class TestAutograderConfigurationSchema(unittest.TestCase):
         self.assertFalse(res)
 
     def testAutograderRootDNE(self):
-        schema = self.createAutograderConfigurationSchema()
+        schema = AutograderConfigurationSchema()
 
         newDir = "autograder_root"
 
@@ -185,7 +184,7 @@ class TestAutograderConfigurationSchema(unittest.TestCase):
             schema.validate(self.configFile)
 
     def testAutograderRootNoConfig(self):
-        schema = self.createAutograderConfigurationSchema()
+        schema = AutograderConfigurationSchema()
 
         newDir = "autograder_root"
 
@@ -203,7 +202,7 @@ class TestAutograderConfigurationSchema(unittest.TestCase):
             shutil.rmtree(newDir)
 
     def testAutograderRootValidWithConfig(self):
-        schema = self.createAutograderConfigurationSchema()
+        schema = AutograderConfigurationSchema()
 
         newDir = "autograder_root"
 

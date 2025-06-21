@@ -13,7 +13,7 @@ class AbstractValidator(abc.ABC):
         self.errors: List[Exception] = []
 
     @abc.abstractmethod
-    # this should be typed, but its a weird cross depenacny issue
+    # this should be typed, but its cross-dependency issue
     def setup(self, studentSubmission):
         pass
 
