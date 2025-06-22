@@ -62,6 +62,7 @@ executionEnvironments = [
 command_line = "-m unittest"
 omit = [
     # TODO write unit tests for the CLI
+    "tests/**",
     "source/autograder_cli/*",
     "__getstate__*",
     "__setstate__*",

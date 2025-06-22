@@ -1,11 +1,11 @@
-import importlib
 import os
+from tomli import load
 from typing import Dict, Generic, Optional as OptionalType, TypeVar, Any
 from dataclasses import dataclass
 
 from schema import And, Optional, Regex, Schema, SchemaError
 
-from autograder_platform.config.common import MissingParsingLibrary, InvalidConfigException
+from autograder_platform.config.common import InvalidConfigException
 from autograder_platform.config.BaseSchema import BaseSchema
 
 LanguageConfigType = TypeVar('LanguageConfigType')
@@ -246,11 +246,6 @@ class AutograderConfigurationBuilder(Generic[T]):
         Attempt to load the autograder config from the TOML config file.
         This file is assumed to be located in the same directory as the actual test cases
         """
-        try:
-            from tomli import load
-        except ModuleNotFoundError:
-            raise MissingParsingLibrary("tomlkit", "AutograderConfigurationBuilder.fromTOML")
-
         with open(file, 'rb') as rb:
             self.data = load(rb)
 

@@ -236,3 +236,16 @@ class TestAutograderConfigurationSchema(unittest.TestCase):
 
         with self.assertRaises(InvalidConfigException):
             schema.build(self.configFile)
+
+
+    def testIncorrectImplConfig(self):
+        schema = AutograderConfigurationSchema()
+
+        self.configFile["new_sub_schema"] = {}
+        del self.configFile["test_impl"]
+
+        with self.assertRaises(InvalidConfigException):
+            schema.validate(self.configFile)
+
+
+
