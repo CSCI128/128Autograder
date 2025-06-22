@@ -4,7 +4,7 @@ import requests
 import os
 from autograder_platform.StudentSubmission.AbstractValidator import AbstractValidator
 from autograder_platform.StudentSubmission.common import ValidationHook
-from autograder_binds.Python.common import FileTypeMap, InvalidPackageError, InvalidRequirementsFileError, MissingMainFileError, NoPyFilesError, TooManyFilesError
+from language_binds.Python.common import FileTypeMap, InvalidPackageError, InvalidRequirementsFileError, MissingMainFileError, NoPyFilesError, TooManyFilesError
 
 class PythonFileValidator(AbstractValidator):
 

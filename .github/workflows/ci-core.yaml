@@ -28,7 +28,6 @@ jobs:
       - name: Test with PyUnit and collect coverage
         run: |
           coverage run
-          coverage combine
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4

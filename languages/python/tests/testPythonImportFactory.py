@@ -4,7 +4,7 @@ import shutil
 import sys
 import unittest
 
-from autograder_binds.Python.PythonFileImportFactory import PythonFileImportFactory
+from language_binds.Python.PythonFileImportFactory import PythonFileImportFactory
 
 class TestPythonImportFactory(unittest.TestCase):
     TEST_FILE_DIRECTORY: str = "./sandbox"

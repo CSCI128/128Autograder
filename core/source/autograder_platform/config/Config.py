@@ -111,13 +111,9 @@ class AutograderConfigurationSchema(BaseSchema[AutograderConfiguration]):
 
     IMPL_SOURCE = "StudentSubmissionImpl"
 
-    @staticmethod
-    def validateImplSource(implName: str) -> bool:
-        try:
-            importlib.import_module(f"autograder_platform.{AutograderConfigurationSchema.IMPL_SOURCE}.{implName}")
-        except ImportError:
-            return False
-        return True
+    @classmethod
+    def validateImplSource(cls, implName: str) -> bool:
+        return implName in cls._registered_sub_schemas
 
     def __init__(self):
         self.currentSchema: Schema = Schema(
@@ -149,7 +145,9 @@ class AutograderConfigurationSchema(BaseSchema[AutograderConfiguration]):
                     Optional("student_work_folder", default="student_work"): str,
                     Optional("private_tests_regex", default=r"^test_private_?\w*\.py$"): str,
                     Optional("public_tests_regex", default=r"^test_?\w*\.py$"): str,
-                }
+                },
+                # allow extra top level keys to be caught so we dont have to discard them
+                object: dict,
             },
             ignore_extra_keys=True, name="ConfigSchema"
         )
@@ -171,13 +169,13 @@ class AutograderConfigurationSchema(BaseSchema[AutograderConfiguration]):
         except SchemaError as schemaError:
             raise InvalidConfigException(str(schemaError))
 
-        if validated['language_to_use'] in self._registered_sub_schemas:
-            validated = self._registered_sub_schemas[validated['language_to_use']].validate(validated)
+        if validated["config"]['language_to_use'] in self._registered_sub_schemas:
+            validated = self._registered_sub_schemas[validated["config"]['language_to_use']].validate(validated)
 
-        impl_to_use = validated["config"]["impl_to_use"].lower()
+        impl_to_use = validated["config"]["language_to_use"]
 
-        if impl_to_use not in validated["config"] or validated["config"][impl_to_use] is None:
-            raise InvalidConfigException(f"Missing Implementation Config for config.{impl_to_use}")
+        if impl_to_use not in validated or validated[impl_to_use] is None:
+            raise InvalidConfigException(f"Missing Implementation Config for {impl_to_use}")
 
         if validated["build"]["use_starter_code"] and validated["build"]["starter_code_source"] is None:
             raise InvalidConfigException("Missing starter code file location")
@@ -201,10 +199,14 @@ class AutograderConfigurationSchema(BaseSchema[AutograderConfiguration]):
 
         language_config: OptionalType[LanguageConfigType] = None
 
-        if data['language_to_use'] in self._registered_sub_schemas:
-            language_config = self._registered_sub_schemas[data['language_to_use']].validate(data)
+        if data["config"]['language_to_use'] in self._registered_sub_schemas and data[data['config']['language_to_use']] is not None:
+            language_config = self._registered_sub_schemas[data['config']['language_to_use']].build(data)
+        else:
+            raise InvalidConfigException("Language to use has not been registered!")
 
         data['language_config'] = language_config
+
+        del data[data["config"]['language_to_use']]
 
         data["config"] = BasicConfiguration(**data["config"])
         data["build"] = BuildConfiguration(**data["build"])

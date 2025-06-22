@@ -1,18 +1,53 @@
 import os
 import shutil
 import unittest
+from dataclasses import dataclass
+from typing import Dict, Optional as OptionalType
 
-from autograder_platform.config.Config import AutograderConfigurationSchema, InvalidConfigException
+from schema import Schema, Optional
 
+from autograder_platform.config.BaseSchema import BaseSchema
+from autograder_platform.config.Config import AutograderConfigurationSchema, InvalidConfigException, \
+    AutograderConfiguration
+
+
+@dataclass(frozen=True)
+class TestImplConfig:
+    a: bool
+    required: bool
+
+class SubSchema(BaseSchema[OptionalType[TestImplConfig]]):
+    def __init__(self):
+        self.schema: Schema = Schema({
+            "test_impl": {
+                Optional("a", default=False): bool,
+                "required": bool,
+            },
+        }, ignore_extra_keys=True, name="TestImplSchema")
+
+    def validate(self, data: Dict) -> Dict:
+        if "test_impl" not in data:
+            return data
+
+        data["test_impl"] = self.schema.validate(data)["test_impl"]
+
+        return data
+
+    def build(self, data: Dict) -> OptionalType[TestImplConfig]:
+        if "test_impl" not in data or not data["test_impl"]:
+            return None
+
+        return TestImplConfig(**data["test_impl"])
 
 class TestAutograderConfigurationSchema(unittest.TestCase):
 
     def setUp(self) -> None:
+        AutograderConfigurationSchema.register_sub_schema("test_impl", SubSchema())
         self.configFile = {
             "assignment_name": "HelloWold",
             "semester": "F99",
             "config": {
-                "language_to_use": "undefined",
+                "language_to_use": "test_impl",
                 "autograder_version": "2.0.0",
                 "test_directory": ".",
                 "enforce_submission_limit": True,
@@ -24,48 +59,35 @@ class TestAutograderConfigurationSchema(unittest.TestCase):
                 "use_data_files": False,
                 "build_student": True,
                 "build_gradescope": True,
-            }
+            },
+            "test_impl": {
+                "required": False,
+            },
         }
 
-    @staticmethod
-    def createAutograderConfigurationSchema() -> AutograderConfigurationSchema:
-        return AutograderConfigurationSchema()
+    def tearDown(self):
+        AutograderConfigurationSchema.deregister_sub_schema("test_impl")
 
     def testValidNoOptionalFields(self):
         schema = AutograderConfigurationSchema()
 
         actual = schema.validate(self.configFile)
         self.assertIn("submission_limit", actual["config"])
-        self.assertIn("buffer_size", actual["config"]["python"])
 
     def testValidOptionalFields(self):
         schema = AutograderConfigurationSchema()
 
-        self.configFile["config"]["python"] = {}
+        self.configFile["config"]["take_highest"] = True
         actual = schema.validate(self.configFile)
-        self.assertIn("extra_packages", actual["config"]["python"])
-        self.assertIn("buffer_size", actual["config"]["python"])
+        self.assertIn("take_highest", actual["config"])
+        self.assertEqual(False, actual["test_impl"]["a"])
 
     def testInvalidOptionalFields(self):
         schema = AutograderConfigurationSchema()
 
-        self.configFile["config"]["python"] = {}
-        self.configFile["config"]["python"]["extra_packages"] = [{"name": "package"}]
+        self.configFile["config"]["take_highest"] = 10
         with self.assertRaises(InvalidConfigException):
             schema.validate(self.configFile)
-
-    def testValidOptionalNestedFields(self):
-        schema = AutograderConfigurationSchema()
-
-        self.configFile["config"]["python"] = {}
-        packages = [{"name": "package", "version": "1.0.0"}]
-        self.configFile["config"]["python"]["extra_packages"] = packages
-        self.configFile["config"]["python"]["buffer_size"] = 2 * 2 ** 20
-
-        actual = schema.validate(self.configFile)
-
-        self.assertEqual(packages, actual["config"]["python"]["extra_packages"])
-        self.assertEqual(2*2**20, actual["config"]["python"]["buffer_size"])
 
     def testExtraFields(self):
         schema = AutograderConfigurationSchema()
@@ -93,52 +115,6 @@ class TestAutograderConfigurationSchema(unittest.TestCase):
         self.assertEqual("F99", actual.semester)
         self.assertEqual(1000, actual.config.submission_limit)
 
-    def testBuildWithOptional(self):
-        schema = AutograderConfigurationSchema()
-
-        self.configFile["config"]["python"] = {}
-
-        data = schema.validate(self.configFile)
-
-        actual = schema.build(data)
-
-        if actual.config.python is None:
-            self.fail("config.python was None when it shouldn't be!")
-
-        self.assertIsNotNone(actual.config.python.extra_packages)
-
-    @unittest.skip("C is no longer supported")
-    def testBuildWithCImpl(self):
-        schema = AutograderConfigurationSchema()
-        self.configFile["config"]["impl_to_use"] = "C"
-        self.configFile["config"]["c"] = {}
-        self.configFile["config"]["c"]["use_makefile"] = True
-        self.configFile["config"]["c"]["clean_target"] = "clean"
-        self.configFile["config"]["c"]["submission_name"] = "PROJECT"
-
-        data = schema.validate(self.configFile)
-
-        actual = schema.build(data)
-
-        if actual.config.c is None:
-            self.fail("config.c was None when it shouldn't be!")
-
-
-        self.assertIsNotNone(actual.config.c.use_makefile)
-        self.assertIsNotNone(actual.config.c.submission_name)
-
-    def testBuildWithCImplInvalidName(self):
-        schema = AutograderConfigurationSchema()
-        self.configFile["config"]["impl_to_use"] = "C"
-
-        self.configFile["config"]["c"] = {}
-        self.configFile["config"]["c"]["use_makefile"] = True
-        self.configFile["config"]["c"]["clean_target"] = "clean"
-        self.configFile["config"]["c"]["submission_name"] = ""
-
-        with self.assertRaises(InvalidConfigException):
-            schema.validate(self.configFile)
-
     def testMissingLocationStarterCode(self):
         schema = AutograderConfigurationSchema()
 
@@ -158,13 +134,13 @@ class TestAutograderConfigurationSchema(unittest.TestCase):
     def testMissingImplConfig(self):
         schema = AutograderConfigurationSchema()
 
-        self.configFile["config"]["python"] = None  # type: ignore
+        self.configFile["test_impl"] = None  # type: ignore
 
         with self.assertRaises(InvalidConfigException):
             schema.validate(self.configFile)
 
     def testValidateImplValid(self):
-        res = AutograderConfigurationSchema.validateImplSource("Python")
+        res = AutograderConfigurationSchema.validateImplSource("test_impl")
 
         self.assertTrue(res)
 
@@ -176,7 +152,7 @@ class TestAutograderConfigurationSchema(unittest.TestCase):
     def testAutograderRootDNE(self):
         schema = AutograderConfigurationSchema()
 
-        newDir = "autograder_root"
+        newDir = "DNE"
 
         self.configFile["autograder_root"] = newDir
 
@@ -224,6 +200,39 @@ class TestAutograderConfigurationSchema(unittest.TestCase):
 
         self.assertEqual(newDir, actual["autograder_root"])
 
+    def testBuildSubSchema(self):
+        schema = AutograderConfigurationSchema()
 
+        self.configFile["test_impl"]["required"] = True
 
+        validated = schema.validate(self.configFile)
 
+        actual: AutograderConfiguration[TestImplConfig] = schema.build(validated)
+
+        if actual.language_config is None:
+            self.fail("language config was unexpectedly null")
+
+        self.assertEqual(self.configFile["test_impl"]["required"], actual.language_config.required)
+        self.assertEqual(False, actual.language_config.a)
+
+    def testUndefinedSubSchema(self):
+        schema = AutograderConfigurationSchema()
+        self.configFile["config"]["language_to_use"] = "DNE"
+
+        with self.assertRaises(InvalidConfigException):
+            schema.validate(self.configFile)
+
+    @unittest.skip("For now, I dont think I want this to be an error")
+    def testMultipleSubSchemas(self):
+        schema = AutograderConfigurationSchema()
+        self.configFile["new_sub_schema"] = {}
+
+        with self.assertRaises(InvalidConfigException):
+            schema.validate(self.configFile)
+
+    def testBuildUndefinedSubSchema(self):
+        schema = AutograderConfigurationSchema()
+        self.configFile["test_impl"] = None  # type: ignore
+
+        with self.assertRaises(InvalidConfigException):
+            schema.build(self.configFile)

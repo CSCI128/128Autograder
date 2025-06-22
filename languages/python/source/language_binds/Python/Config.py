@@ -42,7 +42,7 @@ class PythonConfigSchema(BaseSchema[OptionalType[PythonConfiguration]]):
         if 'python' not in data:
             return data
 
-        data['python'] = self.schema.validate(data['python'])
+        data['python'] = self.schema.validate(data)['python']
 
         return data
 

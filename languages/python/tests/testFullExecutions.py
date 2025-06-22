@@ -7,10 +7,10 @@ import dill.source
 
 from autograder_platform.Executors.Executor import Executor
 from autograder_platform.Executors.Environment import ExecutionEnvironmentBuilder, ExecutionEnvironment, getResults
-from autograder_binds.Python.PythonEnvironment import PythonEnvironment, PythonResults, PythonEnvironmentBuilder
-from autograder_binds.Python.PythonFileImportFactory import PythonFileImportFactory
-from autograder_binds.Python import PythonSubmission
-from autograder_binds.Python.Runners import PythonRunnerBuilder, Parameter
+from language_binds.Python.PythonEnvironment import PythonEnvironment, PythonResults, PythonEnvironmentBuilder
+from language_binds.Python.PythonFileImportFactory import PythonFileImportFactory
+from language_binds.Python.PythonSubmission import PythonSubmission
+from language_binds.Python.Runners import PythonRunnerBuilder, Parameter
 from autograder_platform.TestingFramework.SingleFunctionMock import SingleFunctionMock
 from autograder_platform.config.Config import AutograderConfigurationProvider
 

@@ -22,11 +22,11 @@ import sys
 from io import StringIO
 
 from autograder_platform.Executors.common import MissingOutputDataException, detectFileSystemChanges, filterStdOut
-from autograder_binds.Python.common import PythonTaskResult
+from language_binds.Python.common import PythonTaskResult
 from autograder_platform.Tasks.TaskRunner import TaskRunner
 from autograder_platform.TestingFramework.SingleFunctionMock import SingleFunctionMock
-from autograder_binds.Python.PythonEnvironment import PythonEnvironment, PythonResults
-from autograder_binds.Python.AbstractPythonImportFactory import AbstractModuleFinder
+from language_binds.Python.PythonEnvironment import PythonEnvironment, PythonResults
+from language_binds.Python.AbstractPythonImportFactory import AbstractModuleFinder
 
 dill.Pickler.dumps, dill.Pickler.loads = dill.dumps, dill.loads  # type: ignore
 multiprocessing.reduction.dump = dill.dump  # type: ignore

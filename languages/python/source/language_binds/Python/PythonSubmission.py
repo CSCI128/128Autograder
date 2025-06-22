@@ -5,8 +5,8 @@ import subprocess
 from types import CodeType
 from typing import Dict, Iterable, List, Optional, TypeVar
 from autograder_platform.StudentSubmission.AbstractStudentSubmission import AbstractStudentSubmission
-from autograder_binds.Python.PythonValidators import PythonFileValidator, PackageValidator, RequirementsValidator
-from autograder_binds.Python.common import FileTypeMap
+from language_binds.Python.PythonValidators import PythonFileValidator, PackageValidator, RequirementsValidator
+from language_binds.Python.common import FileTypeMap
 
 Builder = TypeVar("Builder", bound="PythonSubmission")
 

@@ -2,8 +2,8 @@ import dataclasses
 from typing import List, Dict, Optional, TypeVar
 from importlib import import_module
 
-from autograder_binds.Python.AbstractPythonImportFactory import AbstractModuleFinder
-from autograder_binds.Python.PythonModuleMockImportFactory import MockedModuleFinder
+from language_binds.Python.AbstractPythonImportFactory import AbstractModuleFinder
+from language_binds.Python.PythonModuleMockImportFactory import MockedModuleFinder
 from autograder_platform.TestingFramework.SingleFunctionMock import SingleFunctionMock
 from autograder_platform.config.Config import AutograderConfiguration
 

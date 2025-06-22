@@ -7,8 +7,8 @@ from io import StringIO
 import random
 from autograder_platform.StudentSubmission.common import ValidationError
 
-from autograder_binds.Python.PythonSubmission import PythonSubmission
-from autograder_binds.Python.common import FileTypeMap
+from language_binds.Python.PythonSubmission import PythonSubmission
+from language_binds.Python.common import FileTypeMap
 
 
 class TestStudentSubmission(unittest.TestCase):

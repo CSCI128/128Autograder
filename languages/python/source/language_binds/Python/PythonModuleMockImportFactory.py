@@ -3,7 +3,7 @@ from importlib.machinery import ModuleSpec
 from types import ModuleType
 from typing import Optional, List, Dict
 
-from autograder_binds.Python.AbstractPythonImportFactory import AbstractModuleFinder
+from language_binds.Python.AbstractPythonImportFactory import AbstractModuleFinder
 from autograder_platform.TestingFramework.SingleFunctionMock import SingleFunctionMock
 
 

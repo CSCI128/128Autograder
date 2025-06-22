@@ -4,8 +4,8 @@ from typing import TypeVar, Tuple, List, Final, Optional, Dict, Callable, TypedD
 
 from autograder_platform.StudentSubmission.common import InvalidRunner, MissingFunctionDefinition
 # from language_binds.ipython.source.autograder_binds.IPython import IPythonSubmission
-from autograder_binds.Python.PythonSubmission import PythonSubmission
-from autograder_binds.Python.common import PythonTaskResult
+from language_binds.Python.PythonSubmission import PythonSubmission
+from language_binds.Python.common import PythonTaskResult
 from autograder_platform.Tasks.TaskRunner import TaskRunner
 from autograder_platform.Tasks.Task import Task
 from autograder_platform.TestingFramework.SingleFunctionMock import SingleFunctionMock

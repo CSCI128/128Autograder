@@ -8,7 +8,7 @@ from autograder_platform.StudentSubmission.ISubmissionProcess import ISubmission
 from autograder_platform.StudentSubmission.SubmissionProcessFactory import SubmissionProcessFactory
 from autograder_platform.config import Config
 from autograder_platform.config.Config import AutograderConfiguration, AutograderConfigurationSchema
-from autograder_platform.config.common import BaseSchema
+from autograder_platform.config.BaseSchema import BaseSchema
 
 LanguageConfigType = TypeVar('LanguageConfigType')
 

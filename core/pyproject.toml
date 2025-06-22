@@ -60,25 +60,9 @@ executionEnvironments = [
 
 [tool.coverage.run]
 command_line = "-m unittest"
-concurrency = ["multiprocessing"]
-# Omit testing files, omit dynamic files, omit __init__.py
-# Doing it at the run level as it will that means they wont be run in the first place
-# Ignore build.py as its it is primarly covered by integration tests
 omit = [
     # TODO write unit tests for the CLI
-    # shouldnt be ignoring them, but also this needs to get out the door
-    # Technically the CLIs are covered via the e2e tests, and we dont seem to have a hole there anymore
     "source/autograder_cli/*",
-    "sandbox/*",
-    "testPrograms/*",
-    "test_code",
-    "test_code.py",
-    "setup_code",
-    "tests/*",
-    "*/student_submission",
-    "__init__.py",
-    "Build.py",
-    "INJECTED_*",
     "__getstate__*",
     "__setstate__*",
 ]
