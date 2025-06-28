@@ -5,7 +5,7 @@ from io import StringIO
 from unittest.mock import patch
 
 from autograder_platform.StudentSubmission.common import ValidationError
-from language_binds.ipython.source.autograder_binds.IPython.IPythonSubmission import IPythonSubmission
+from language_binds.IPython.IPythonSubmission import IPythonSubmission
 from .NotebookBuilder import NotebookBuilder
 
 
@@ -13,14 +13,14 @@ class TestIPythonSubmission(unittest.TestCase):
     TEST_FILE_DIRECTORY: str = "./sandbox"
     VALID_TESTABLE_CELL: str = \
         """
-from autograder_platform.StudentSubmissionImpl.IPython.metadata import TestableCell
+from language_binds.IPython.metadata import TestableCell
 TestableCell(id="testable_cell", deps=[])
 print("VALID_TESTABLE_CELL")
     """
 
     VALID_CELL: str = \
         """
-from autograder_platform.StudentSubmissionImpl.ipython.metadata import Cell 
+from language_binds.IPython.metadata import Cell 
 Cell(id="cell")
 print("VALID_CELL")
     """
@@ -137,7 +137,7 @@ print("VALID_CELL")
         NotebookBuilder("notebook.ipynb", self.TEST_FILE_DIRECTORY) \
             .addMarkdownCell("# Markdown Cell") \
             .addCodeCell(f"""
-from autograder_platform.StudentSubmissionImpl.IPython.metadata import Cell, TestableCell
+from language_binds.IPython.metadata import Cell, TestableCell
 Cell(id="imports")
 value = {expected}
             """) \
@@ -169,7 +169,7 @@ print(value)
         NotebookBuilder("notebook.ipynb", self.TEST_FILE_DIRECTORY) \
             .addMarkdownCell("# Markdown Cell") \
             .addCodeCell(f"""
-from autograder_platform.StudentSubmissionImpl.IPython.metadata import Cell, TestableCell
+from language_binds.IPython.metadata import Cell, TestableCell
 Cell(id="imports")
 value = {expected}
             """) \
@@ -216,7 +216,7 @@ print(value)
         NotebookBuilder("notebook.ipynb", self.TEST_FILE_DIRECTORY) \
             .addMarkdownCell("# Markdown Cell") \
             .addCodeCell(f"""
-from autograder_platform.StudentSubmissionImpl.IPython.metadata import Cell, TestableCell
+from language_binds.IPython.metadata import Cell, TestableCell
 Cell(id="imports")
             """) \
             .addMarkdownCell("# Markdown Cell") \
@@ -246,7 +246,7 @@ TestableCell(id="testable", deps=[(0, "imports")])
         NotebookBuilder("notebook.ipynb", self.TEST_FILE_DIRECTORY) \
             .addMarkdownCell("# Markdown Cell") \
             .addCodeCell(f"""
-from autograder_platform.StudentSubmissionImpl.IPython.metadata import Cell, TestableCell
+from language_binds.IPython.metadata import Cell, TestableCell
 TestableCell(id="imports", deps=[])
 value = '{expected}'
             """) \
@@ -311,7 +311,7 @@ print(value)
         NotebookBuilder("notebook.ipynb", self.TEST_FILE_DIRECTORY)\
             .addCodeCell(
             """
-from autograder_platform.StudentSubmissionImpl.IPython.metadata import Cell, TestableCell
+from language_binds.IPython.metadata import Cell, TestableCell
 TestableCell(id="testable", deps=[])
 %matplotlib inline
 !pip install yippee
@@ -332,7 +332,7 @@ TestableCell(id="testable", deps=[])
         NotebookBuilder("notebook.ipynb", self.TEST_FILE_DIRECTORY) \
             .addCodeCell(
             """
-from autograder_platform.StudentSubmissionImpl.IPython.metadata import Cell, TestableCell
+from language_binds.IPython.metadata import Cell, TestableCell
 import matplotlib.pyplot as plt
 TestableCell(id="testable", deps=[])
 plt.show()
@@ -382,7 +382,7 @@ matplotlib.pyplot.show()
     def testInstallPackages(self, capturedStdout):
         NotebookBuilder("notebook.ipynb", self.TEST_FILE_DIRECTORY) \
             .addCodeCell("""
-from autograder_platform.StudentSubmissionImpl.IPython.metadata import TestableCell
+from language_binds.IPython.metadata import TestableCell
 TestableCell(id="testable", deps=[])
 import pip_install_test
             """) \
@@ -407,7 +407,7 @@ import pip_install_test
     def testPackageDNE(self):
         NotebookBuilder("notebook.ipynb", self.TEST_FILE_DIRECTORY) \
             .addCodeCell("""
-from autograder_platform.StudentSubmissionImpl.IPython.metadata import TestableCell
+from langauge_binds.IPython.metadata import TestableCell
 TestableCell(id="testable", deps=[])
 import pip_install_test
             """) \

@@ -11,13 +11,13 @@ import nbconvert
 from nbformat import read, NotebookNode
 
 from autograder_platform.StudentSubmission.AbstractStudentSubmission import AbstractStudentSubmission
-from language_binds.ipython.source.autograder_binds.IPython.CellMetadataParser import CellMetadata, parseCellMetadata
-from language_binds.ipython.source.autograder_binds.IPython.IPythonTransformers import MagicCommandTransformer, \
+from language_binds.IPython.CellMetadataParser import CellMetadata, parseCellMetadata
+from language_binds.IPython.IPythonTransformers import MagicCommandTransformer, \
     MatplotLibFigTransformer
-from language_binds.ipython.source.autograder_binds.IPython.IPythonValidators import IPythonFileValidator, \
+from language_binds.IPython.IPythonValidators import IPythonFileValidator, \
     TestableCellValidator, TestableCellDependencyValidator
 
-from autograder_platform.StudentSubmissionImpl.Python.PythonValidators import PackageValidator
+from language_binds.Python.PythonValidators import PackageValidator
 
 Builder = TypeVar("Builder", bound="IPythonSubmission")
 

@@ -2,7 +2,7 @@ import ast
 import unittest
 from typing import Optional
 
-from language_binds.ipython.source.autograder_binds.IPython.CellMetadataParser import CellMetadata, parseCellMetadata
+from language_binds.IPython.CellMetadataParser import CellMetadata, parseCellMetadata
 
 
 class TestCellMetadataParser(unittest.TestCase):
@@ -12,7 +12,7 @@ class TestCellMetadataParser(unittest.TestCase):
 
         program = \
             f"""
-from autograder_platform.StudentSubmissionImpl.ipython.metadata import TestableCell
+from language_binds.IPython.metadata import TestableCell
 TestableCell(id="{expectedId}", deps=[{expectedDep}])
         """
 
@@ -30,7 +30,7 @@ TestableCell(id="{expectedId}", deps=[{expectedDep}])
 
         program = \
             f"""
-from autograder_platform.StudentSubmissionImpl.ipython.metadata import Cell
+from language_binds.IPython.metadata import Cell
 Cell(id="{expectedId}")
         """
 
@@ -47,7 +47,7 @@ Cell(id="{expectedId}")
 
         program = \
             f"""
-from autograder_platform.StudentSubmissionImpl.ipython.metadata import Cell
+from language_binds.IPython.metadata import Cell
 Cell(id="{expectedId}")
 Cell(id="ignore_1")
 Cell(id="ignore_2")
@@ -71,7 +71,7 @@ Cell(id="ignore_2")
     def testParseCellMetadataIdTypeError(self):
         program = \
             f"""
-from autograder_platform.StudentSubmissionImpl.ipython.metadata import TestableCell
+from language_binds.IPython.metadata import TestableCell
 TestableCell(id=1, deps=[])
         """
 
@@ -85,7 +85,7 @@ TestableCell(id=1, deps=[])
     def testParseCellMetadataIdSyntaxError(self):
         program = \
             f"""
-from autograder_platform.StudentSubmissionImpl.ipython.metadata import TestableCell
+from language_binds.IPython.metadata import TestableCell
 id = "testable_cell_1"
 TestableCell(id=id, deps=[])
         """
@@ -100,7 +100,7 @@ TestableCell(id=id, deps=[])
     def testParseCellMetadataDepsSyntaxErrorNoTuple(self):
         program = \
             f"""
-from autograder_platform.StudentSubmissionImpl.ipython.metadata import TestableCell
+from language_binds.IPython.metadata import TestableCell
 TestableCell(id="testable_cell", deps=["dep_1"])
         """
 
@@ -114,7 +114,7 @@ TestableCell(id="testable_cell", deps=["dep_1"])
     def testParseCellMetadataDepsSyntaxErrorInvalidTuple(self):
         program = \
             f"""
-from autograder_platform.StudentSubmissionImpl.ipython.metadata import TestableCell
+from language_binds.IPython.metadata import TestableCell
 TestableCell(id="testable_cell", deps=[(1, "dep_1", "a helpful comment")])
         """
 
@@ -128,7 +128,7 @@ TestableCell(id="testable_cell", deps=[(1, "dep_1", "a helpful comment")])
     def testParseCellMetadataDepsSyntaxErrorOrdering(self):
         program = \
             f"""
-from autograder_platform.StudentSubmissionImpl.ipython.metadata import TestableCell
+from language_binds.IPython.metadata import TestableCell
 order = 1
 TestableCell(id="testable_cell", deps=[(order, "dep_1")])
         """
@@ -143,7 +143,7 @@ TestableCell(id="testable_cell", deps=[(order, "dep_1")])
     def testParseCellMetadataDepsSyntaxErrorId(self):
         program = \
             f"""
-from autograder_platform.StudentSubmissionImpl.ipython.metadata import TestableCell
+from language_binds.IPython.metadata import TestableCell
 dep = "dep_1"
 TestableCell(id="testable_cell", deps=[(1, dep)])
         """
@@ -158,7 +158,7 @@ TestableCell(id="testable_cell", deps=[(1, dep)])
     def testParseCellMetadataDepsTypeErrorOrdering(self):
         program = \
             f"""
-from autograder_platform.StudentSubmissionImpl.ipython.metadata import TestableCell
+from language_binds.IPython.metadata import TestableCell
 TestableCell(id="testable_cell", deps=[("1", "dep_1")])
         """
 
@@ -172,7 +172,7 @@ TestableCell(id="testable_cell", deps=[("1", "dep_1")])
     def testParseCellMetadataDepsTypeErrorId(self):
         program = \
             f"""
-from autograder_platform.StudentSubmissionImpl.ipython.metadata import TestableCell
+from language_binds.IPython.metadata import TestableCell
 TestableCell(id="testable_cell", deps=[(1, 1)])
         """
 
@@ -186,7 +186,7 @@ TestableCell(id="testable_cell", deps=[(1, 1)])
     def testParseCellMetadataMissingId(self):
         program = \
             f"""
-from autograder_platform.StudentSubmissionImpl.ipython.metadata import TestableCell
+from language_binds.IPython.metadata import TestableCell
 TestableCell()
         """
 
@@ -200,7 +200,7 @@ TestableCell()
     def testParseCellMetadataInvalidDeps(self):
         program = \
             f"""
-from autograder_platform.StudentSubmissionImpl.ipython.metadata import TestableCell
+from language_binds.IPython.metadata import TestableCell
 TestableCell(id="testable_cell", deps=(1, 1))
         """
 
@@ -215,7 +215,7 @@ TestableCell(id="testable_cell", deps=(1, 1))
         expected_id = "testable_cell"
         program = \
             f"""
-from autograder_platform.StudentSubmissionImpl.ipython.metadata import TestableCell
+from language_binds.IPython.metadata import TestableCell
 print("this is irrelevant")
 TestableCell(id="{expected_id}", deps=[(1, "1")])
         """

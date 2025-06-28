@@ -2,7 +2,7 @@ from typing import List
 
 from autograder_platform.StudentSubmission.AbstractValidator import AbstractValidator
 from autograder_platform.StudentSubmission.common import ValidationHook
-from language_binds.ipython.source.autograder_binds.IPython.common import MissingNotebookFile, TooManyNotebooksError, \
+from language_binds.IPython.common import MissingNotebookFile, TooManyNotebooksError, \
     MissingDependencyError, NoTestableCellsError
 
 class TestableCellDependencyValidator(AbstractValidator):

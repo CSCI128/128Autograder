@@ -72,11 +72,12 @@ jobs:
         run: |
           pip install -e '.[dev]'
           cd ../../core
-          pip install -e .
+          pip install .
 
-      - name: Core Tests
+      - name: Run Tests
         run: |
           python3 -m unittest
+
 
   windows-python-unittests:
     runs-on: "windows-latest"
@@ -98,32 +99,64 @@ jobs:
         run: |
           pip install -e '.[dev]'
           cd ../../core
-          pip install -e .
+          pip install .
 
-      - name: Core Tests
+      - name: Run Tests
         run: |
           python3 -m unittest
 
-#  macos-ipython-unittests:
-#    runs-on: "macos-latest"
-#    strategy:
-#      matrix:
-#        python-version: ["3.11", "3.12" ]
-#    defaults:
-#      run:
-#        working-directory: languages/ipython
-#
-#    steps:
-#      - uses: actions/checkout@v4
-#      - name: Set up Python ${{ matrix.python-version }}
-#        uses: actions/setup-python@v5
-#        with:
-#          python-version: ${{ matrix.python-version }}
-#
-#      - name: Install dependencies
-#        run: |
-#          pip install -e '.[dev]'
-#
-#      - name: Core Tests
-#        run: |
-#          python3 -m unittest
+  windows-ipython-unittests:
+    runs-on: "windows-latest"
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12" ]
+    defaults:
+      run:
+        working-directory: languages/python
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          pip install -e '.[dev]'
+          cd ../python
+          pip install .
+          cd ../../core
+          pip install .
+
+      - name: Run Tests
+        run: |
+          python3 -m unittest
+
+  macos-ipython-unittests:
+    runs-on: "macos-latest"
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12" ]
+    defaults:
+      run:
+        working-directory: languages/python
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          pip install -e '.[dev]'
+          cd ../python
+          pip install .
+          cd ../../core
+          pip install .
+
+      - name: Run Tests
+        run: |
+          python3 -m unittest

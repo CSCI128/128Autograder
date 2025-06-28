@@ -1,35 +1,36 @@
 [build-system]
-    requires = ["setuptools >= 61"]
-    build-backend = "setuptools.build_meta"
+requires = ["setuptools >= 61"]
+build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
-    where = ["source"]
-    exclude = ["tests"]
+where = ["source"]
+include = ["language_binds.Python"]
+exclude = ["tests"]
 
 [tool.setuptools.dynamic]
-    version = {attr = "language_binds.Python.__version__"}
+version = { attr = "language_binds.Python.__version__" }
 
 
 [project]
-    name = "128Autograder-Python"
-    authors = [
-        { name = "Gregory Bell" }
-    ]
+name = "128Autograder-Python"
+authors = [
+    { name = "Gregory Bell" }
+]
 
-    maintainers = [
-        { name = "Gregory Bell" }
-    ]
+maintainers = [
+    { name = "Gregory Bell" }
+]
 
-    dynamic = ["version"]
+dynamic = ["version"]
 
-    requires-python = ">=3.11.0"
+requires-python = ">=3.11.0"
 
-    dependencies = [
-        "schema==0.7.5",
-        "requests==2.31.0",
-        "dill==0.3.9",
-#        "128autograder==5.2.2",
-    ]
+dependencies = [
+    "schema==0.7.5",
+    "requests==2.31.0",
+    "dill==0.3.9",
+    #        "128autograder==5.2.2",
+]
 
 [project.optional-dependencies]
 dev = [

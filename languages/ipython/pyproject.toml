@@ -1,38 +1,70 @@
 [build-system]
-    requires = ["setuptools >= 61"]
-    build-backend = "setuptools.build_meta"
+requires = ["setuptools >= 61"]
+build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
-    where = ["source"]
-    exclude = ["tests"]
+where = ["source"]
+include = ["language_binds.Python"]
+exclude = ["tests"]
 
 [tool.setuptools.dynamic]
-    version = {attr = "language_binds.IPython.__version__"}
+version = { attr = "language_binds.IPython.__version__" }
 
 
 [project]
-    name = "128Autograder iPython Binds"
-    authors = [
-        { name = "Gregory Bell" }
-    ]
+name = "128Autograder-iPython"
+authors = [
+    { name = "Gregory Bell" }
+]
 
-    maintainers = [
-        { name = "Gregory Bell" }
-    ]
+maintainers = [
+    { name = "Gregory Bell" }
+]
 
-    dynamic = ["version"]
+dynamic = ["version"]
 
-    requires-python = ">=3.11.0"
+requires-python = ">=3.11.0"
 
-    dependencies = [
-        "nbformat",
-        "nbconvert",
-#        "128autograder==5.2.2",
-    ]
+dependencies = [
+    "nbformat",
+    "nbconvert",
+    #        "128autograder==5.2.2",
+]
 
 
 [project.optional-dependencies]
 dev = [
     "coverage[toml]",
     "build",
+]
+
+[tool.coverage.run]
+command_line = "-m unittest"
+concurrency = ["multiprocessing"]
+omit = [
+    "**/Python/*",
+    "sandbox/**",
+    "testPrograms/**",
+    "*/student_submission*",
+    "INJECTED_*",
+    "**/test*",
+    "test_code*",
+    "**/autograder_*/**",
+    "tests/**",
+    "source/autograder_cli/*",
+    "__getstate__*",
+    "__setstate__*",
+]
+
+[tool.coverage.report]
+fail_under = 90
+skip_empty = true
+exclude_also = [
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "raise EnvironmentError",
+    "raise AttributeError",
+    "raise InvalidRunner",
+    "if __name__ == .__main__.:",
+    "@(abc\\.)?abstractmethod",
 ]

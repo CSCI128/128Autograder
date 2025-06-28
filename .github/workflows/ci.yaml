@@ -51,7 +51,37 @@ jobs:
         run: |
           pip install -e '.[dev]'
           cd ../../core
-          pip install -e .
+          pip install .
+
+      - name: Test with PyUnit and collect coverage
+        run: |
+          coverage run
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          fail_ci_if_error: true
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+  unit-tests-ipython:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: languages/python
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.12
+
+      - name: Install dependencies
+        run: |
+          pip install -e '.[dev]'
+          cd ../python
+          pip install .
+          cd ../../core
+          pip install .
 
       - name: Test with PyUnit and collect coverage
         run: |
