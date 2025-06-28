@@ -27,11 +27,13 @@ class SubmissionPathValidator(AbstractValidator):
             self.addError(
                 NotADirectoryError(f"{self.pathToValidate} is not a directory!")
             )
+            return
 
         if not os.access(self.pathToValidate, os.R_OK):
             self.addError(
                 PermissionError(f"Unable to read from {self.pathToValidate}!")
             )
+            return
 
         if len(os.listdir(self.pathToValidate)) < 1:
             self.addError(

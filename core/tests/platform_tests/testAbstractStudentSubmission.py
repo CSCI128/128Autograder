@@ -131,6 +131,30 @@ class TestAbstractStudentSubmission(unittest.TestCase):
         self.assertIn("Validation Errors:", exceptionText)
         self.assertIn(f"1. FileNotFoundError: {submissionRoot} does not exist", exceptionText)
 
+    def testSubmissionRootIsNotDirectory(self):
+        file = os.path.join(self.TEST_DIR, "file")
+        with open(file, 'w') as w:
+            w.write("\n")
+
+        with self.assertRaises(ValidationError) as validationError:
+            StudentSubmission() \
+                .setSubmissionRoot(file) \
+                .load()
+
+        exceptionText = str(validationError.exception)
+
+        self.assertIn(f"1. NotADirectoryError: {file} is not a directory", exceptionText)
+
+    def testSubmissionRootEmptyDirectory(self):
+        with self.assertRaises(ValidationError) as validationError:
+            StudentSubmission() \
+                .setSubmissionRoot(self.TEST_DIR) \
+                .load()
+
+        exceptionText = str(validationError.exception)
+
+        self.assertIn(f"no files found", exceptionText.lower())
+
 
     def testAddValidatorForExistingFile(self):
         filename = "file.txt"
