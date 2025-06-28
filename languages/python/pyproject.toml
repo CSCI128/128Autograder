@@ -29,3 +29,33 @@
         "requests==2.31.0",
         "dill==0.3.9",
     ]
+
+[tool.coverage.run]
+command_line = "-m unittest"
+concurrency = ["multiprocessing"]
+omit = [
+    "sandbox/**",
+    "testPrograms/**",
+    "*/student_submission",
+    "INJECTED_*",
+    "**/test*",
+    "test_code*",
+    "**/autograder_*/**",
+    "tests/**",
+    "source/autograder_cli/*",
+    "__getstate__*",
+    "__setstate__*",
+]
+
+[tool.coverage.report]
+fail_under = 90
+skip_empty = true
+exclude_also = [
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "raise EnvironmentError",
+    "raise AttributeError",
+    "raise InvalidRunner",
+    "if __name__ == .__main__.:",
+    "@(abc\\.)?abstractmethod",
+]
