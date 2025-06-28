@@ -21,7 +21,7 @@ class Results(Generic[ImplResults]):
             readFile: Union[str, bytes] = ""
 
             try:
-                with open(self.files[file], 'r') as r:
+                with open(self.files[file], 'r', encoding="utf-8") as r:
                     readFile = r.read()
             except UnicodeDecodeError:
                 with open(self.files[file], 'rb') as rb:

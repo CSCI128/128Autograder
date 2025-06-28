@@ -1,8 +1,20 @@
+import base64
+import dataclasses
 import os
 import shutil
 import unittest
 
 from autograder_platform.Executors.Environment import ExecutionEnvironment, ExecutionEnvironmentBuilder, Results, getResults
+
+@dataclasses.dataclass
+class TestImplEnvironment:
+    a_int: int
+
+class TestImplEnvironmentBuilder:
+    def build(self, a: int) -> TestImplEnvironment:
+        return TestImplEnvironment(a)
+
+
 
 
 class TestEnvironmentBuilder(unittest.TestCase):
@@ -66,6 +78,22 @@ class TestEnvironmentBuilder(unittest.TestCase):
                 .setTimeout(0) \
                 .build()
 
+    def testDefineImplEnvironment(self):
+        expected = 2
+        environment: ExecutionEnvironment[TestImplEnvironment, str] = ExecutionEnvironmentBuilder[TestImplEnvironment, str]()\
+            .setImplEnvironment(TestImplEnvironmentBuilder, lambda x: x.build(expected))\
+            .build()
+
+        self.assertIsNotNone(environment.impl_environment)
+        self.assertEqual(expected, environment.impl_environment.a_int)
+
+    def testDefineImplEnvironmentTwice(self):
+        with self.assertRaises(EnvironmentError):
+            ExecutionEnvironmentBuilder[TestImplEnvironment, str]() \
+                .setImplEnvironment(TestImplEnvironmentBuilder, lambda x: x.build(2)) \
+                .setImplEnvironment(TestImplEnvironmentBuilder, lambda x: x.build(2)) \
+                .build()
+
 
 class TestEnvironmentGetResults(unittest.TestCase):
     DATA_DIRECTORY: str = "./test_data"
@@ -121,3 +149,87 @@ class TestEnvironmentGetResults(unittest.TestCase):
         exceptionText = str(error.exception)
 
         self.assertIn("No OUTPUT was created by the student's submission.", exceptionText)
+
+    def testImplResultsUndefined(self):
+        self.environment.resultData = Results()
+
+        res = None
+        with self.assertRaises(AssertionError) as error:
+            res = getResults(self.environment).impl_results
+
+        self.assertIsNone(res)
+
+        msg = str(error.exception)
+
+        self.assertIn("no implementation results were set", msg.lower())
+
+    def testGetImplResultsDefined(self):
+        expected = "Impl results!"
+        self.environment.resultData = Results(impl_results=expected)
+
+        res = getResults(self.environment).impl_results
+
+        self.assertEqual(expected, res)
+
+
+    def testGetReturnValueUndefined(self):
+        self.environment.resultData = Results()
+
+        res = getResults(self.environment).return_val
+
+        self.assertIsNone(res)
+
+    def testGetReturnValue(self):
+        expected = 10
+        self.environment.resultData = Results(return_val=expected)
+
+        res = getResults(self.environment).return_val
+
+        self.assertEqual(expected, res)
+
+    def testGetStdoutDefined(self):
+        expected = ["some text"]
+        self.environment.resultData = Results(stdout=expected)
+
+        res = getResults(self.environment).stdout
+
+        self.assertEqual(expected, res)
+
+    def testGetParametersUndefined(self):
+        self.environment.resultData = Results()
+
+        res = None
+        with self.assertRaises(AssertionError) as error:
+            res = getResults(self.environment).parameter
+
+        self.assertIsNone(res)
+
+        msg = str(error.exception)
+
+        self.assertIn("no parameters were set", msg.lower())
+
+    def testGetParametersDefined(self):
+        expected = (10, 9, 8)
+        self.environment.resultData = Results(parameters=expected)
+
+        res = getResults(self.environment).parameter
+
+        self.assertEqual(expected, res)
+
+    def testGetFileNonUnicode(self):
+        # a 1x1 transparent png
+        expectedOutput = b"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEUAAACnej3aAAAAAXRSTlMAQObYZgAAAApJREFUCNdjYAAAAAIAAeIhvDMAAAAASUVORK5CYII="
+
+        with open(self.OUTPUT_FILE_LOCATION, 'wb') as w:
+            w.write(base64.b64decode(expectedOutput))
+
+        self.environment.resultData = Results(file_out={
+            os.path.basename(self.OUTPUT_FILE_LOCATION): self.OUTPUT_FILE_LOCATION
+        })
+
+        actualOutput = getResults(self.environment).file_out[os.path.basename(self.OUTPUT_FILE_LOCATION)]
+
+        self.assertIsInstance(actualOutput, bytes)
+
+        self.assertEqual(expectedOutput, base64.b64encode(actualOutput))
+
