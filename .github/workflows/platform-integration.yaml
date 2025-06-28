@@ -71,6 +71,8 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -e '.[dev]'
+          cd ../../core
+          pip install -e .
 
       - name: Core Tests
         run: |
@@ -95,6 +97,8 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -e '.[dev]'
+          cd ../../core
+          pip install -e .
 
       - name: Core Tests
         run: |

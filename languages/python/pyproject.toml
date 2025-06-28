@@ -28,7 +28,14 @@
         "schema==0.7.5",
         "requests==2.31.0",
         "dill==0.3.9",
+#        "128autograder==5.2.2",
     ]
+
+[project.optional-dependencies]
+dev = [
+    "coverage[toml]",
+    "build",
+]
 
 [tool.coverage.run]
 command_line = "-m unittest"

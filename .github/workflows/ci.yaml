@@ -50,6 +50,8 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -e '.[dev]'
+          cd ../../core
+          pip install -e .
 
       - name: Test with PyUnit and collect coverage
         run: |
