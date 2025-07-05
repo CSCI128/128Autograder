@@ -1,3 +1,4 @@
+import importlib
 import os
 from tomli import load
 from typing import Dict, Generic, Optional as OptionalType, TypeVar, Any
@@ -109,8 +110,6 @@ class AutograderConfigurationSchema(BaseSchema[AutograderConfiguration]):
     This class builds to: ref:`AutograderConfiguration` for easy typing.
     """
 
-    IMPL_SOURCE = "StudentSubmissionImpl"
-
     @classmethod
     def validateImplSource(cls, implName: str) -> bool:
         return implName in cls._registered_sub_schemas
@@ -120,7 +119,8 @@ class AutograderConfigurationSchema(BaseSchema[AutograderConfiguration]):
             {
                 "assignment_name": And(str, Regex(r"^(\w+-?)+$")),
                 "semester": And(str, Regex(r"^(F|S|SUM)\d{2}$")),
-                Optional("autograder_root", default="."): And(os.path.exists, os.path.isdir, lambda path: "config.toml" in os.listdir(path)),
+                # TODO: need to make this use the current config file name
+                Optional("autograder_root", default="."): And(os.path.exists, os.path.isdir, lambda path: any([".toml" in file for file in os.listdir(path)])),
                 "config": {
                     "language_to_use": And(str, AutograderConfigurationSchema.validateImplSource),
                     Optional("student_submission_directory", default="."): And(str, os.path.exists, os.path.isdir),

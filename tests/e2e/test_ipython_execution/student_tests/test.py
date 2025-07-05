@@ -3,21 +3,22 @@ from autograder_utils.Decorators import Weight, ImageResult
 
 from autograder_platform.Executors.Executor import Executor
 from autograder_platform.Executors.Environment import ExecutionEnvironmentBuilder, getResults, Results
-from language_binds.ipython.source.autograder_binds.IPython import IPythonSubmission
-from autograder_platform.StudentSubmissionImpl.Python.PythonEnvironment import PythonEnvironmentBuilder, PythonResults
+from language_binds.IPython.IPythonSubmission import IPythonSubmission
+from language_binds.Python.Config import PythonConfiguration
+from language_binds.Python.PythonEnvironment import PythonEnvironmentBuilder, PythonResults
 from autograder_platform.TestingFramework.SingleFunctionMock import SingleFunctionMock
-from autograder_platform.config.Config import AutograderConfigurationProvider
-from autograder_platform.StudentSubmissionImpl.Python import PythonRunnerBuilder
+from autograder_platform.config.Config import AutograderConfigurationProvider, AutograderConfiguration
+from language_binds.Python.Runners import PythonRunnerBuilder
 
 
 class IPythonExecution(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.autograderConfig = AutograderConfigurationProvider.get()
+        cls.autograderConfig: AutograderConfiguration[PythonConfiguration] = AutograderConfigurationProvider.get()
 
         cls.studentSubmission = IPythonSubmission() \
             .setSubmissionRoot(cls.autograderConfig.config.student_submission_directory) \
-            .addPackages(cls.autograderConfig.config.python.extra_packages) \
+            .addPackages(cls.autograderConfig.language_config.extra_packages) \
             .enableHtmlTransformation()\
             .load() \
             .build() \

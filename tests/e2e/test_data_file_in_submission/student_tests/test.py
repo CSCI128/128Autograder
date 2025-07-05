@@ -4,9 +4,9 @@ from autograder_utils.Decorators import Weight
 
 from autograder_platform.Executors.Executor import Executor
 from autograder_platform.Executors.Environment import ExecutionEnvironmentBuilder, getResults
-from autograder_platform.StudentSubmissionImpl.Python import PythonSubmission
+from language_binds.Python.PythonSubmission import PythonSubmission
 from autograder_platform.config.Config import AutograderConfigurationProvider
-from autograder_platform.StudentSubmissionImpl.Python import PythonRunnerBuilder
+from language_binds.Python.Runners import PythonRunnerBuilder
 
 
 class DataFilesTest(unittest.TestCase):

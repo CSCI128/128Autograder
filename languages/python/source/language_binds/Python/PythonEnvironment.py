@@ -3,6 +3,7 @@ from typing import List, Dict, Optional, TypeVar
 from importlib import import_module
 
 from language_binds.Python.AbstractPythonImportFactory import AbstractModuleFinder
+from language_binds.Python.Config import PythonConfiguration
 from language_binds.Python.PythonModuleMockImportFactory import MockedModuleFinder
 from autograder_platform.TestingFramework.SingleFunctionMock import SingleFunctionMock
 from autograder_platform.config.Config import AutograderConfiguration
@@ -43,11 +44,11 @@ class PythonEnvironment():
     """What mocks have been defined for this run of the student's submission"""
 
 
-def configMapper(env: PythonEnvironment, config: AutograderConfiguration):
-    if config.config.python is None:
+def configMapper(env: PythonEnvironment, config: AutograderConfiguration[PythonConfiguration]):
+    if config.language_config is None or not isinstance(config.language_config, PythonConfiguration):
         raise AttributeError("INVALID STATE: Implementation environment mapping FAILED! Python config is NONE when should be defined!")
 
-    env.buffer_size = config.config.python.buffer_size
+    env.buffer_size = config.language_config.buffer_size
 
 
 Builder = TypeVar("Builder", bound="PythonEnvironmentBuilder")

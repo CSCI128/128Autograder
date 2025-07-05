@@ -1,16 +1,18 @@
 import abc
 import argparse
+import importlib
 import unittest.loader
 from argparse import ArgumentParser
-from typing import List, Callable, Dict, Optional
+from typing import List, Optional
 from unittest import TestSuite
 
 import autograder_platform
 from autograder_platform.config.Config import AutograderConfigurationBuilder, AutograderConfigurationProvider, \
     AutograderConfiguration
 
-class AutograderCLITool(abc.ABC):
+KNOWN_REGISTRATIONS_NAMES = ["language_binds.IPython", "language_binds.Python"]
 
+class AutograderCLITool(abc.ABC):
     PACKAGE_ERROR: str = "Required Package Error"
     SUBMISSION_ERROR: str = "Student Submission Error"
     ENVIRONMENT_ERROR: str = "Environment Error"
@@ -50,6 +52,8 @@ class AutograderCLITool(abc.ABC):
         # required CLI arguments
         self.parser.add_argument("--config-file", default="./config.toml",
                             help="Set the location of the config file")
+        self.parser.add_argument("--additional-languages", action="extend", nargs="+", default=[],
+                                 help="The import names for each additional language not provided in the base plugin set. The import should register via `Registration.Registrar` in `__init__.py`.")
 
     @staticmethod
     def get_version() -> str:
@@ -70,6 +74,8 @@ class AutograderCLITool(abc.ABC):
     def load_config(self):  # pragma: no cover
         self.arguments = self.parser.parse_args()
 
+        self.discover_installed_language_binds(self.arguments.additional_languages)
+
         # load toml then override any options in toml with things that are passed to the runtime
         builder = AutograderConfigurationBuilder() \
             .fromTOML(file=self.arguments.config_file)
@@ -79,6 +85,17 @@ class AutograderCLITool(abc.ABC):
         self.config = builder.build()
 
         AutograderConfigurationProvider.set(self.config)
+
+    def discover_installed_language_binds(self, additional_languages: List[str]):
+        to_discover = KNOWN_REGISTRATIONS_NAMES
+        to_discover.extend(additional_languages)
+
+        for module in to_discover:
+            try:
+                mod = importlib.import_module(module)
+                self.print_info_message(f"Successfully registered {module} at {mod.__version__}")
+            except ImportError:
+                pass
 
     def discover_tests(self):  # pragma: no cover
         self.tests = unittest.loader.defaultTestLoader.discover(self.config.config.test_directory)

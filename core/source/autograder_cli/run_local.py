@@ -263,6 +263,8 @@ class LocalAutograderCLI(AutograderCLITool):
         if not self.arguments.bypass_submission_check and not self.verify_student_work_present(os.path.join(root_directory, self.arguments.submission_directory)):
             return True
 
+        self.discover_installed_language_binds(self.arguments.additional_languages)
+
         # assume submission has changed if we are disabling submission checks
         fileChanged = self.verify_file_changed(os.path.join(root_directory, self.arguments.submission_directory)) if not self.arguments.bypass_submission_check else True
 
