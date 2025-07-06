@@ -1,7 +1,8 @@
 services:
   test_many_non_main_files:
+    image: ghcr.io/csci128/128autograder/python:local
     build:
-      dockerfile: docker/generic.dockerfile
+      dockerfile: docker/python.dockerfile
       context: .
     entrypoint:
       - run_gradescope
@@ -14,8 +15,9 @@ services:
       - "./tests/e2e/integration_config.toml:/autograder/source/config.toml"
 
   test_requirements_in_submission:
+    image: ghcr.io/csci128/128autograder/python:local
     build:
-      dockerfile: docker/generic.dockerfile
+      dockerfile: docker/python.dockerfile
       context: .
     entrypoint:
       - run_gradescope
@@ -39,8 +41,9 @@ services:
       
 
   test_metadata_attack:
+    image: ghcr.io/csci128/128autograder/python:local
     build:
-      dockerfile: docker/generic.dockerfile
+      dockerfile: docker/python.dockerfile
       context: .
     entrypoint:
       - run_gradescope
@@ -56,8 +59,9 @@ services:
         condition: service_completed_successfully
 
   test_data_file_in_submission:
+    image: ghcr.io/csci128/128autograder/python:local
     build:
-      dockerfile: docker/generic.dockerfile
+      dockerfile: docker/python.dockerfile
       context: .
     entrypoint:
       - run_gradescope
@@ -70,8 +74,9 @@ services:
       - "./tests/e2e/integration_config.toml:/autograder/source/config.toml"
 
   test_build:
+    image: ghcr.io/csci128/128autograder/python:local
     build:
-      dockerfile: docker/generic.dockerfile
+      dockerfile: docker/core.dockerfile
       context: .
     entrypoint: build_autograder
     working_dir: /autograder/source
@@ -85,8 +90,9 @@ services:
       - "./tests/e2e/test_build/starter_code/:/autograder/source/starter_code"
 
   test_run_local:
+    image: ghcr.io/csci128/128autograder/python:local
     build:
-      dockerfile: docker/generic.dockerfile
+      dockerfile: docker/python.dockerfile
       context: .
     entrypoint: ["sh", "/app/entrypoint.sh"]
     working_dir: /app/source
@@ -98,8 +104,9 @@ services:
       - "./tests/e2e/test_run_test_my_work/test_my_work_config.toml:/app/source/config.toml"
 
   test_run_local_nested:
+    image: ghcr.io/csci128/128autograder/python:local
     build:
-      dockerfile: docker/generic.dockerfile
+      dockerfile: docker/python.dockerfile
       context: .
     entrypoint: ["sh", "/app/entrypoint.sh"]
     working_dir: /app/source
@@ -111,8 +118,9 @@ services:
       - "./tests/e2e/test_run_local_in_nested_with_data/test_my_work_config.toml:/app/source/config.toml"
 
   test_run_with_prairie_learn:
+    image: ghcr.io/csci128/128autograder/python:local
     build:
-      dockerfile: docker/generic.dockerfile
+      dockerfile: docker/python.dockerfile
       context: .
     entrypoint: ["sh", "/app/entrypoint.sh"]
     working_dir: /app/source
@@ -125,8 +133,9 @@ services:
       - "./tests/e2e/test_run_with_prairie_learn/pl_config.toml:/app/source/config.toml"
 
   test_ipython_execution:
+    image: ghcr.io/csci128/128autograder/ipython:local
     build:
-      dockerfile: docker/generic.dockerfile
+      dockerfile: docker/ipython.dockerfile
       context: .
     entrypoint:
       - run_gradescope
