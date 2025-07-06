@@ -20,7 +20,7 @@ class TestFullExecutions(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         configMock = MagicMock()
-        configMock.config.python.buffer_size = 2 ** 20
+        configMock.language_config.buffer_size = 2 ** 20
         AutograderConfigurationProvider.set(configMock)
 
     @classmethod

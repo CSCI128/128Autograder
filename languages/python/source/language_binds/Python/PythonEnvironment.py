@@ -45,7 +45,7 @@ class PythonEnvironment():
 
 
 def configMapper(env: PythonEnvironment, config: AutograderConfiguration[PythonConfiguration]):
-    if config.language_config is None or not isinstance(config.language_config, PythonConfiguration):
+    if config.language_config is None:
         raise AttributeError("INVALID STATE: Implementation environment mapping FAILED! Python config is NONE when should be defined!")
 
     env.buffer_size = config.language_config.buffer_size
