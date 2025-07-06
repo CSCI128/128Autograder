@@ -86,14 +86,14 @@ class AutograderCLITool(abc.ABC):
 
         AutograderConfigurationProvider.set(self.config)
 
-    def discover_installed_language_binds(self, additional_languages: List[str]):
+    def discover_installed_language_binds(self, additional_languages: List[str]):  # pragma: no cover
         to_discover = KNOWN_REGISTRATIONS_NAMES
         to_discover.extend(additional_languages)
 
         for module in to_discover:
             try:
                 mod = importlib.import_module(module)
-                self.print_info_message(f"Successfully registered {module} at {mod.__version__}")
+                # self.print_info_message(f"Successfully registered {module} at {mod.__version__}")
             except ImportError:
                 pass
 

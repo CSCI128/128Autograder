@@ -108,12 +108,12 @@ jobs:
 
       - name: Build Core
         run: |
-          docker build . -f ./core/core.dockerfile -t ghcr.io/csci128/128autograder/core:local
-          docker build . -f ./core/core.dockerfile -t ghcr.io/csci128/128autograder/core:latest
+          docker build . -f ./docker/core.dockerfile -t ghcr.io/csci128/128autograder/core:local
+          docker build . -f ./docker/core.dockerfile -t ghcr.io/csci128/128autograder/core:latest
       - name: Build iPython
-        run: docker build . -f ./core/ipython.dockerfile -t ghcr.io/csci128/128autograder/ipython:local
+        run: docker build . -f ./docker/ipython.dockerfile -t ghcr.io/csci128/128autograder/ipython:local
       - name: Build Python
-        run: docker build . -f ./core/python.dockerfile -t ghcr.io/csci128/128autograder/python:local
+        run: docker build . -f ./docker/python.dockerfile -t ghcr.io/csci128/128autograder/python:local
 
       - name: Run tests
         run: docker compose up
