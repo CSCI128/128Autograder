@@ -3,8 +3,10 @@
     build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
-    where=["source"]
-    exclude =["tests"]
+where=["source"]
+include = ["autograder_platform", "autograder_cli"]
+namespaces=true
+exclude =["tests"]
 
 [tool.setuptools.dynamic]
     version = {attr = "autograder_platform.__version__"}

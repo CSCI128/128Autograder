@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 where = ["source"]
-include = ["language_binds.IPython"]
+include = ["language_binds.IPython", "autograder_cli.IPython"]
 namespaces = true
 exclude = ["tests"]
 
@@ -29,6 +29,7 @@ requires-python = ">=3.11.0"
 dependencies = [
     "nbformat",
     "nbconvert",
+    "rich==14.0.0",
     #        "128autograder==5.2.2",
 ]
 
@@ -38,6 +39,9 @@ dev = [
     "coverage[toml]",
     "build",
 ]
+
+[project.scripts]
+ipython_submission_manager = "autograder_cli.IPython.ipython_submission_manager:tool"
 
 [tool.coverage.run]
 command_line = "-m unittest"

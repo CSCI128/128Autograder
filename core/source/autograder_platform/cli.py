@@ -55,6 +55,8 @@ class AutograderCLITool(abc.ABC):
         self.parser.add_argument("--additional-languages", action="extend", nargs="+", default=[],
                                  help="The import names for each additional language not provided in the base plugin set. The import should register via `Registration.Registrar` in `__init__.py`.")
 
+        self.parser.add_argument("--version", action="store_true", default=False, help="Print out version and exit")
+
     @staticmethod
     def get_version() -> str:
         return autograder_platform.__version__

@@ -5,4 +5,4 @@ from typing import List
 class CellMetadata:
     runnable: bool = False
     id: str = ""
-    deps: List[str] = dataclasses.field(default=list)
+    deps: List[str] = dataclasses.field(default_factory=list)

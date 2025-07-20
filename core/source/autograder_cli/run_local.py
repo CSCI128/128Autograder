@@ -220,7 +220,6 @@ class LocalAutograderCLI(AutograderCLITool):
                                  help="The location for the tests for the autograder relative to the submission root")
         self.parser.add_argument("--bypass-version-check", action="store_true", default=False,
                                  help="Bypass autograder version verification. Note: This may cause the autograder to fail!")
-        self.parser.add_argument("--version", action="store_true", default=False, help="Print out version and exit")
 
         self.parser.add_argument("--bypass-submission-check", action="store_true", default=False,
                                  help="Bypass submission presence check. Note: This may cause the autograder to fail!")
