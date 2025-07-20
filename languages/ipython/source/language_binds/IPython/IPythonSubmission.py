@@ -1,4 +1,3 @@
-import ast
 import dataclasses
 import os
 import re
@@ -11,7 +10,7 @@ import nbconvert
 from nbformat import read, NotebookNode
 
 from autograder_platform.StudentSubmission.AbstractStudentSubmission import AbstractStudentSubmission
-from language_binds.IPython.CellMetadataParser import CellMetadata, parseCellMetadata
+from language_binds.IPython.metadata import CellMetadata
 from language_binds.IPython.IPythonTransformers import MagicCommandTransformer, \
     MatplotLibFigTransformer
 from language_binds.IPython.IPythonValidators import IPythonFileValidator, \
@@ -37,6 +36,7 @@ def filterSearchResults(path: str) -> bool:
 class Cell:
     metadata: CellMetadata
     code: str
+
 
 class IPythonSubmission(AbstractStudentSubmission[CodeType]):
     IPYTHON_FILE_REGEX: re.Pattern = re.compile(r"^(\w|-)+\.ipynb")
@@ -84,12 +84,21 @@ class IPythonSubmission(AbstractStudentSubmission[CodeType]):
             if cell["cell_type"] != "code":
                 continue
 
-            source = self.runTransformers(cell["source"])
+            if "metadata" not in cell:
+                continue
 
-            metadata = parseCellMetadata(ast.parse(source))
+            if "autograder" not in cell["metadata"]:
+                continue
+
+            try:
+                metadata = CellMetadata(**cell['metadata']['autograder'])
+            except Exception:
+                continue
 
             if metadata is None:
                 continue
+
+            source = self.runTransformers(cell["source"])
 
             cellWithMetadata = Cell(metadata, source)
 
@@ -110,7 +119,8 @@ class IPythonSubmission(AbstractStudentSubmission[CodeType]):
             except subprocess.CalledProcessError as _:  # pragma: no cover
                 try:  # pragma: no cover
                     subprocess.check_call([sys.executable, "-m", "pip", "install",  # pragma: no cover
-                                           f"{package}=={version}" if version else package, "--break-system-packages"], # pragma: no cover
+                                           f"{package}=={version}" if version else package, "--break-system-packages"],
+                                          # pragma: no cover
 
                                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)  # pragma: no cover
                 except subprocess.CalledProcessError as error:  # pragma: no cover
@@ -134,12 +144,12 @@ class IPythonSubmission(AbstractStudentSubmission[CodeType]):
             if not cell.metadata.runnable:
                 continue
 
-            sortedDeps = sorted(cell.metadata.deps, key=lambda x: x.order)
+            sortedDeps = cell.metadata.deps
 
             # testable code is always last in the ordering
-            sortedDeps.append((-1, cell.metadata.id))
+            sortedDeps.append(cell.metadata.id)
 
-            combinedSrc = "\n".join([self._cells[id].code for _, id in sortedDeps])
+            combinedSrc = "\n".join([self._cells[id].code for id in sortedDeps])
 
             builtCell: CodeType = compile(combinedSrc, f"student_submission_{cell.metadata.id}", "exec")
 
@@ -157,7 +167,8 @@ class IPythonSubmission(AbstractStudentSubmission[CodeType]):
 
     def setActiveCell(self, activeCell: str):
         if activeCell not in self._builtCells.keys():
-            raise RuntimeError(f"Invalid active cell '{activeCell}'! Expected one of {', '.join(self._builtCells.keys())}")
+            raise RuntimeError(
+                f"Invalid active cell '{activeCell}'! Expected one of {', '.join(self._builtCells.keys())}")
 
         self._activeCell = activeCell
 

@@ -1,9 +1,8 @@
-from typing import Tuple, List
+import dataclasses
+from typing import List
 
-# noinspection PyShadowingBuiltins,PyUnusedLocal,PyDefaultArgument
-def TestableCell(id: str = "", deps: List[Tuple[int, str]] = []) -> None:
-    return None
-
-# noinspection PyShadowingBuiltins,PyUnusedLocal,PyDefaultArgument
-def Cell(id: str = "") -> None:
-    return None
+@dataclasses.dataclass
+class CellMetadata:
+    runnable: bool = False
+    id: str = ""
+    deps: List[str] = dataclasses.field(default_factory=list)
