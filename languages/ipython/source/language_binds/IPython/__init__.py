@@ -5,7 +5,7 @@ from language_binds.Python.PythonEnvironment import PythonEnvironment, configMap
 from language_binds.IPython.IPythonSubmission import IPythonSubmission
 from language_binds.Python.PythonSubmissionProcess import RunnableStudentSubmission
 
-__version__ = "1.0.0.RC-1"
+__version__ = "1.0.0.RC-2"
 
 metadata = LanguageRegistrationMetadata(
     name="ipython",

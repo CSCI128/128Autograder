@@ -13,15 +13,11 @@ class TestIPythonSubmission(unittest.TestCase):
     TEST_FILE_DIRECTORY: str = "./sandbox"
     VALID_TESTABLE_CELL: str = \
         """
-from language_binds.IPython.metadata import TestableCell
-TestableCell(id="testable_cell", deps=[])
 print("VALID_TESTABLE_CELL")
     """
 
     VALID_CELL: str = \
         """
-from language_binds.IPython.metadata import Cell 
-Cell(id="cell")
 print("VALID_CELL")
     """
 
@@ -38,9 +34,9 @@ print("VALID_CELL")
     def testDiscoverSingleFile(self):
         filename = NotebookBuilder("notebook.ipynb", self.TEST_FILE_DIRECTORY) \
             .addMarkdownCell("# Markdown Cell") \
-            .addCodeCell(self.VALID_TESTABLE_CELL) \
+            .addCodeCell("testableCell", self.VALID_TESTABLE_CELL) \
             .addMarkdownCell("# Markdown Cell") \
-            .addCodeCell(self.VALID_CELL) \
+            .addCodeCell("validCell", self.VALID_CELL, runnable=False) \
             .addMarkdownCell("# Markdown Cell") \
             .toFile()
 
@@ -61,9 +57,9 @@ print("VALID_CELL")
         os.mkdir(fullpath)
         filename = NotebookBuilder("notebook.ipynb", fullpath) \
             .addMarkdownCell("# Markdown Cell") \
-            .addCodeCell(self.VALID_TESTABLE_CELL) \
+            .addCodeCell("testableCell", self.VALID_TESTABLE_CELL) \
             .addMarkdownCell("# Markdown Cell") \
-            .addCodeCell(self.VALID_CELL) \
+            .addCodeCell("validCell", self.VALID_CELL, runnable=False) \
             .addMarkdownCell("# Markdown Cell") \
             .toFile()
 
@@ -82,13 +78,13 @@ print("VALID_CELL")
     def testDiscoverManyFiles(self):
         NotebookBuilder("notebook1.ipynb", self.TEST_FILE_DIRECTORY) \
             .addMarkdownCell("# Markdown Cell") \
-            .addCodeCell(self.VALID_TESTABLE_CELL) \
+            .addCodeCell("testableCell", self.VALID_TESTABLE_CELL) \
             .addMarkdownCell("# Markdown Cell") \
             .toFile()
 
         NotebookBuilder("notebook2.ipynb", self.TEST_FILE_DIRECTORY) \
             .addMarkdownCell("# Markdown Cell") \
-            .addCodeCell(self.VALID_TESTABLE_CELL) \
+            .addCodeCell("testableCell", self.VALID_TESTABLE_CELL) \
             .addMarkdownCell("# Markdown Cell") \
             .toFile()
 
@@ -118,7 +114,7 @@ print("VALID_CELL")
     def testNoTestableCells(self):
         NotebookBuilder("notebook.ipynb", self.TEST_FILE_DIRECTORY) \
             .addMarkdownCell("# Markdown Cell") \
-            .addCodeCell(self.VALID_CELL) \
+            .addCodeCell("validCell", self.VALID_CELL, runnable=False) \
             .addMarkdownCell("# Markdown Cell") \
             .toFile()
 
@@ -136,16 +132,13 @@ print("VALID_CELL")
         expected = 100
         NotebookBuilder("notebook.ipynb", self.TEST_FILE_DIRECTORY) \
             .addMarkdownCell("# Markdown Cell") \
-            .addCodeCell(f"""
-from language_binds.IPython.metadata import Cell, TestableCell
-Cell(id="imports")
+            .addCodeCell("imports", f"""
 value = {expected}
-            """) \
+            """, runnable=False) \
             .addMarkdownCell("# Markdown Cell") \
-            .addCodeCell("""
-TestableCell(id="testable", deps=[(0, "imports")])
+            .addCodeCell("testable", """""
 print(value)
-            """) \
+            """, deps=["imports"]) \
             .addMarkdownCell("# Markdown Cell") \
             .toFile()
 
@@ -158,7 +151,7 @@ print(value)
         cells = submission.getCells()
 
         self.assertIn("testable", cells.keys())
-        self.assertEqual("imports", cells["testable"].metadata.deps[0].id)
+        self.assertEqual("imports", cells["testable"].metadata.deps[0])
 
         exec(submission.getExecutableSubmission())
 
@@ -168,16 +161,13 @@ print(value)
         expected = 100
         NotebookBuilder("notebook.ipynb", self.TEST_FILE_DIRECTORY) \
             .addMarkdownCell("# Markdown Cell") \
-            .addCodeCell(f"""
-from language_binds.IPython.metadata import Cell, TestableCell
-Cell(id="imports")
+            .addCodeCell("imports", f"""
 value = {expected}
-            """) \
+            """, runnable=False) \
             .addMarkdownCell("# Markdown Cell") \
-            .addCodeCell("""
-TestableCell(id="testable", deps=[(0, "dne")])
+            .addCodeCell("testable", """
 print(value)
-            """) \
+            """, deps=["dne"]) \
             .addMarkdownCell("# Markdown Cell") \
             .toFile()
 
@@ -193,9 +183,9 @@ print(value)
     def testOnlyRunnableCellsCanBeActivated(self):
         NotebookBuilder("notebook.ipynb", self.TEST_FILE_DIRECTORY) \
             .addMarkdownCell("# Markdown Cell") \
-            .addCodeCell(self.VALID_TESTABLE_CELL) \
+            .addCodeCell("testableCell", self.VALID_TESTABLE_CELL) \
             .addMarkdownCell("# Markdown Cell") \
-            .addCodeCell(self.VALID_CELL) \
+            .addCodeCell("validCell", self.VALID_CELL, runnable=False) \
             .addMarkdownCell("# Markdown Cell") \
             .toFile()
 
@@ -215,15 +205,10 @@ print(value)
     def testActiveCellMustBeSetWhenManyUnset(self):
         NotebookBuilder("notebook.ipynb", self.TEST_FILE_DIRECTORY) \
             .addMarkdownCell("# Markdown Cell") \
-            .addCodeCell(f"""
-from language_binds.IPython.metadata import Cell, TestableCell
-Cell(id="imports")
-            """) \
+            .addCodeCell("imports", "", runnable=False) \
             .addMarkdownCell("# Markdown Cell") \
-            .addCodeCell("""
-TestableCell(id="testable", deps=[(0, "imports")])
-            """) \
-            .addCodeCell(self.VALID_TESTABLE_CELL) \
+            .addCodeCell("testable", "", deps=["imports"]) \
+            .addCodeCell("testableCell", self.VALID_TESTABLE_CELL) \
             .addMarkdownCell("# Markdown Cell") \
             .toFile()
 
@@ -245,17 +230,14 @@ TestableCell(id="testable", deps=[(0, "imports")])
         expected = "imported!"
         NotebookBuilder("notebook.ipynb", self.TEST_FILE_DIRECTORY) \
             .addMarkdownCell("# Markdown Cell") \
-            .addCodeCell(f"""
-from language_binds.IPython.metadata import Cell, TestableCell
-TestableCell(id="imports", deps=[])
+            .addCodeCell("imports", f"""
 value = '{expected}'
-            """) \
+            """, runnable=False) \
             .addMarkdownCell("# Markdown Cell") \
-            .addCodeCell("""
-TestableCell(id="testable", deps=[(0, "imports")])
+            .addCodeCell("testable", """
 print(value)
-            """) \
-            .addCodeCell(self.VALID_TESTABLE_CELL) \
+            """, deps=["imports"]) \
+            .addCodeCell("testableCell", self.VALID_TESTABLE_CELL) \
             .addMarkdownCell("# Markdown Cell") \
             .toFile()
 
@@ -275,7 +257,7 @@ print(value)
     def testGenerateHTMLFailsWhenDisabled(self):
         NotebookBuilder("notebook2.ipynb", self.TEST_FILE_DIRECTORY) \
             .addMarkdownCell("# Markdown Cell") \
-            .addCodeCell(self.VALID_TESTABLE_CELL) \
+            .addCodeCell("testableCell", self.VALID_TESTABLE_CELL) \
             .addMarkdownCell("# Markdown Cell") \
             .toFile()
 
@@ -293,7 +275,7 @@ print(value)
     def testGenerateHTML(self):
         NotebookBuilder("notebook2.ipynb", self.TEST_FILE_DIRECTORY) \
             .addMarkdownCell("# Markdown Cell") \
-            .addCodeCell(self.VALID_TESTABLE_CELL) \
+            .addCodeCell("testableCell", self.VALID_TESTABLE_CELL) \
             .addMarkdownCell("# Markdown Cell") \
             .toFile()
 
@@ -309,10 +291,8 @@ print(value)
 
     def testTransformMagicCommand(self):
         NotebookBuilder("notebook.ipynb", self.TEST_FILE_DIRECTORY)\
-            .addCodeCell(
+            .addCodeCell("testable",
             """
-from language_binds.IPython.metadata import Cell, TestableCell
-TestableCell(id="testable", deps=[])
 %matplotlib inline
 !pip install yippee
             """)\
@@ -330,10 +310,8 @@ TestableCell(id="testable", deps=[])
 
     def testTransformMatplotlibShow(self):
         NotebookBuilder("notebook.ipynb", self.TEST_FILE_DIRECTORY) \
-            .addCodeCell(
+            .addCodeCell("testable",
             """
-from language_binds.IPython.metadata import Cell, TestableCell
-import matplotlib.pyplot as plt
 TestableCell(id="testable", deps=[])
 plt.show()
 matplotlib.pyplot.show()
@@ -354,19 +332,19 @@ matplotlib.pyplot.show()
         os.makedirs(os.path.join(self.TEST_FILE_DIRECTORY, "dir", "__pycache__"))
 
         NotebookBuilder(".notebook.ipynb", self.TEST_FILE_DIRECTORY) \
-            .addCodeCell(self.VALID_TESTABLE_CELL)\
+            .addCodeCell("testableCell", self.VALID_TESTABLE_CELL) \
             .toFile()
 
         NotebookBuilder("a notebook.ipynb", self.TEST_FILE_DIRECTORY) \
-            .addCodeCell(self.VALID_TESTABLE_CELL) \
+            .addCodeCell("testableCell", self.VALID_TESTABLE_CELL) \
             .toFile()
 
         NotebookBuilder("a notebook.ipynb", self.TEST_FILE_DIRECTORY) \
-            .addCodeCell(self.VALID_TESTABLE_CELL) \
+            .addCodeCell("testableCell", self.VALID_TESTABLE_CELL) \
             .toFile()
 
         NotebookBuilder("notebook.ipynb", self.TEST_FILE_DIRECTORY) \
-            .addCodeCell(self.VALID_TESTABLE_CELL) \
+            .addCodeCell("testableCell", self.VALID_TESTABLE_CELL) \
             .toFile()
 
         submission = IPythonSubmission() \
@@ -381,9 +359,7 @@ matplotlib.pyplot.show()
     @patch("sys.stdout", new_callable=StringIO)
     def testInstallPackages(self, capturedStdout):
         NotebookBuilder("notebook.ipynb", self.TEST_FILE_DIRECTORY) \
-            .addCodeCell("""
-from language_binds.IPython.metadata import TestableCell
-TestableCell(id="testable", deps=[])
+            .addCodeCell("testable", """
 import pip_install_test
             """) \
             .toFile()
@@ -406,9 +382,7 @@ import pip_install_test
 
     def testPackageDNE(self):
         NotebookBuilder("notebook.ipynb", self.TEST_FILE_DIRECTORY) \
-            .addCodeCell("""
-from langauge_binds.IPython.metadata import TestableCell
-TestableCell(id="testable", deps=[])
+            .addCodeCell("testable", """
 import pip_install_test
             """) \
             .toFile()
