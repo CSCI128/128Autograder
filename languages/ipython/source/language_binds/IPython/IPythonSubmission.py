@@ -11,7 +11,7 @@ import nbconvert
 from nbformat import read, NotebookNode
 
 from autograder_platform.StudentSubmission.AbstractStudentSubmission import AbstractStudentSubmission
-from language_binds.IPython.CellMetadataParser import CellMetadata, parseCellMetadata
+from language_binds.IPython.metadata import CellMetadata
 from language_binds.IPython.IPythonTransformers import MagicCommandTransformer, \
     MatplotLibFigTransformer
 from language_binds.IPython.IPythonValidators import IPythonFileValidator, \
@@ -84,12 +84,21 @@ class IPythonSubmission(AbstractStudentSubmission[CodeType]):
             if cell["cell_type"] != "code":
                 continue
 
-            source = self.runTransformers(cell["source"])
+            if "metadata" not in cell:
+                continue
 
-            metadata = parseCellMetadata(ast.parse(source))
+            if "autograder" not in cell["metadata"]:
+                continue
+
+            try:
+                metadata = CellMetadata(**cell['metadata']['autograder'])
+            except Exception:
+                continue
 
             if metadata is None:
                 continue
+
+            source = self.runTransformers(cell["source"])
 
             cellWithMetadata = Cell(metadata, source)
 
