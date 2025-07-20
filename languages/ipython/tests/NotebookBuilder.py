@@ -5,6 +5,8 @@ import nbformat
 import nbformat as nb
 from nbformat import NotebookNode
 
+from language_binds.IPython.metadata import CellMetadata
+
 Builder = TypeVar("Builder", bound="NotebookBuilder")
 
 class NotebookBuilder:
@@ -13,8 +15,15 @@ class NotebookBuilder:
         self._notebook: NotebookNode = nb.v4.new_notebook()
         self._cells: List[NotebookNode] = []
 
-    def addCodeCell(self: Builder, src: str) -> Builder:
-        self._cells.append(nb.v4.new_code_cell(src))
+    def addCodeCell(self: Builder, id: str, src: str, runnable=True, deps: List = None) -> Builder:
+        if deps is None:
+            deps = []
+
+        cell = nb.v4.new_code_cell(src)
+        cell["metadata"] = {}
+        cell["metadata"]["autograder"] = CellMetadata(runnable=runnable, id=id, deps=deps).__dict__
+
+        self._cells.append(cell)
 
         return self
 

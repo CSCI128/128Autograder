@@ -23,8 +23,8 @@ class TestableCellDependencyValidator(AbstractValidator):
         for cell in self.cells.values():
             metadata = cell.metadata
             for dep in metadata.deps:
-                if dep.id not in availableCells:
-                    self.addError(MissingDependencyError(metadata.id, dep.id, availableCells))
+                if dep not in availableCells:
+                    self.addError(MissingDependencyError(metadata.id, dep, availableCells))
 
 class TestableCellValidator(AbstractValidator):
     @staticmethod

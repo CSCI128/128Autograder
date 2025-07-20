@@ -38,6 +38,7 @@ class Cell:
     metadata: CellMetadata
     code: str
 
+
 class IPythonSubmission(AbstractStudentSubmission[CodeType]):
     IPYTHON_FILE_REGEX: re.Pattern = re.compile(r"^(\w|-)+\.ipynb")
 
@@ -119,7 +120,8 @@ class IPythonSubmission(AbstractStudentSubmission[CodeType]):
             except subprocess.CalledProcessError as _:  # pragma: no cover
                 try:  # pragma: no cover
                     subprocess.check_call([sys.executable, "-m", "pip", "install",  # pragma: no cover
-                                           f"{package}=={version}" if version else package, "--break-system-packages"], # pragma: no cover
+                                           f"{package}=={version}" if version else package, "--break-system-packages"],
+                                          # pragma: no cover
 
                                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)  # pragma: no cover
                 except subprocess.CalledProcessError as error:  # pragma: no cover
@@ -143,12 +145,12 @@ class IPythonSubmission(AbstractStudentSubmission[CodeType]):
             if not cell.metadata.runnable:
                 continue
 
-            sortedDeps = sorted(cell.metadata.deps, key=lambda x: x.order)
+            sortedDeps = cell.metadata.deps
 
             # testable code is always last in the ordering
-            sortedDeps.append((-1, cell.metadata.id))
+            sortedDeps.append(cell.metadata.id)
 
-            combinedSrc = "\n".join([self._cells[id].code for _, id in sortedDeps])
+            combinedSrc = "\n".join([self._cells[id].code for id in sortedDeps])
 
             builtCell: CodeType = compile(combinedSrc, f"student_submission_{cell.metadata.id}", "exec")
 
@@ -166,7 +168,8 @@ class IPythonSubmission(AbstractStudentSubmission[CodeType]):
 
     def setActiveCell(self, activeCell: str):
         if activeCell not in self._builtCells.keys():
-            raise RuntimeError(f"Invalid active cell '{activeCell}'! Expected one of {', '.join(self._builtCells.keys())}")
+            raise RuntimeError(
+                f"Invalid active cell '{activeCell}'! Expected one of {', '.join(self._builtCells.keys())}")
 
         self._activeCell = activeCell
 
