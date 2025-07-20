@@ -4,8 +4,6 @@
 
 [tool.setuptools.packages.find]
 where=["source"]
-include = ["autograder_platform", "autograder_cli"]
-namespaces=true
 exclude =["tests"]
 
 [tool.setuptools.dynamic]

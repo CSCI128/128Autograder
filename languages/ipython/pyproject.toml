@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 where = ["source"]
-include = ["language_binds.IPython", "autograder_cli.IPython"]
+include = ["language_binds.IPython", "ipython_binds_cli"]
 namespaces = true
 exclude = ["tests"]
 
@@ -41,7 +41,7 @@ dev = [
 ]
 
 [project.scripts]
-ipython_submission_manager = "autograder_cli.IPython.ipython_submission_manager:tool"
+ipython_submission_manager = "ipython_binds_cli.ipython_submission_manager:tool"
 
 [tool.coverage.run]
 command_line = "-m unittest"
