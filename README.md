@@ -1,3 +1,5 @@
+![Autograder Platform Logo](./docs/source/branding/platform_logo_stacked.svg)
+
 # The 128 Autograder Platform
 > The battle tested code autograding platform for introductory students
 
