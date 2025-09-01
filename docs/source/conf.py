@@ -21,7 +21,7 @@ extensions = []
 
 templates_path = ['_templates']
 exclude_patterns = []
-
+master_doc = "master_toc_tree"
 
 
 # -- Options for HTML output -------------------------------------------------
@@ -30,9 +30,20 @@ exclude_patterns = []
 html_theme = 'sphinx_book_theme'
 html_static_path = ['_static']
 html_theme_options = {
-        "repository_url": "https://github.com/CSCI128/128Autograder",
-        "use_repository_button": True,
+    "repository_url": "https://github.com/CSCI128/128Autograder",
+    "use_repository_button": True,
+    "icon_links": [
+        {
+            "name": "GitHub",
+            "url": "https://github.com/CSCI128/128Autograder",
+            "icon": "fa-brands fa-square-github",
+            "type": "fontawesome",
+        },
+    ],
 }
 
 html_logo = "./branding/platform_logo_rectangle.svg"
 html_title = "128 Autograder Platform"
+html_context = {
+    "default_mode": "dark",
+}
