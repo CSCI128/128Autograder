@@ -1,5 +1,5 @@
 .. image:: ./branding/platform_logo_stacked.svg
-   :height: .1vw
+   :height: 100pt
 
 =======================
 128 Autograder Platform 
