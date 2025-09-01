@@ -1,3 +1,6 @@
+# pyright: reportMissingTypeStubs=false
+from autograder_platform import __version__
+
 # Configuration file for the Sphinx documentation builder.
 #
 # For the full list of built-in configuration values, see the documentation:
@@ -9,7 +12,7 @@
 project = '128 Autograder Platform'
 copyright = '2025, Gregory Bell'
 author = 'Gregory Bell'
-release = 'v6.0.0'
+release = __version__
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -26,3 +29,10 @@ exclude_patterns = []
 
 html_theme = 'sphinx_book_theme'
 html_static_path = ['_static']
+html_theme_options = {
+        "repository_url": "https://github.com/CSCI128/128Autograder",
+        "use_repository_button": True,
+}
+
+html_logo = "./branding/platform_logo_rectangle.svg"
+html_title = "128 Autograder Platform"
