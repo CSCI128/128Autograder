@@ -2,13 +2,13 @@ import os
 
 assert os.path.exists("bin/generation/student/")
 assert os.path.exists("bin/generation/docker/gradescope/")
-assert os.path.exists("bin/generation/docker/prairielearn/")
+assert os.path.exists("bin/generation/prairielearn/")
 
 assert os.path.exists("bin/generation/docker/gradescope/run_autograder")
 assert os.path.exists("bin/generation/docker/gradescope/setup.sh")
 assert os.path.exists("bin/generation/docker/gradescope/config.toml")
-assert os.path.exists("bin/generation/docker/prairielearn/run_autograder")
-assert os.path.exists("bin/generation/docker/prairielearn/config.toml")
+assert os.path.exists("bin/generation/prairielearn/tests/run_autograder")
+assert os.path.exists("bin/generation/prairielearn/tests/config.toml")
 
 actual_gs_dirs = os.listdir("bin/generation/docker/gradescope/")
 actual_student_dirs = os.listdir("bin/generation/student/")
@@ -23,8 +23,8 @@ student_expected_files.sort()
 gs_actual_test_files = [file for file in os.listdir("bin/generation/docker/gradescope/student_tests/") if os.path.isfile(os.path.join(
     "bin/generation/docker/gradescope/student_tests/", file))]
 gs_actual_test_files.sort()
-pl_actual_test_files = [file for file in os.listdir("bin/generation/docker/prairielearn/student_tests/") if os.path.isfile(os.path.join(
-    "bin/generation/docker/prairielearn/student_tests/", file))]
+pl_actual_test_files = [file for file in os.listdir("bin/generation/prairielearn/tests/student_tests/") if os.path.isfile(os.path.join(
+    "bin/generation/prairielearn/tests/student_tests/", file))]
 pl_actual_test_files.sort()
 
 student_actual_files = [file for file in os.listdir("bin/generation/student/student_tests/") if os.path.isfile(os.path.join(
@@ -68,7 +68,7 @@ student_expected_directories = ["test_public"]
 gs_actual_directories = os.listdir("bin/generation/docker/gradescope/student_tests/data/files/")
 gs_actual_directories.sort()
 
-pl_actual_directories = os.listdir("bin/generation/docker/prairielearn/student_tests/data/files/")
+pl_actual_directories = os.listdir("bin/generation/prairielearn/tests/student_tests/data/files/")
 pl_actual_directories.sort()
 
 student_actual_directories = os.listdir("bin/generation/student/student_tests/data/files/")
@@ -97,10 +97,10 @@ gs_actual_public_files.sort()
 gs_actual_private_files = os.listdir("bin/generation/docker/gradescope/student_tests/data/files/test_private")
 gs_actual_private_files.sort()
 
-pl_actual_public_files = os.listdir("bin/generation/docker/prairielearn/student_tests/data/files/test_public")
+pl_actual_public_files = os.listdir("bin/generation/prairielearn/tests/student_tests/data/files/test_public")
 pl_actual_public_files.sort()
 
-pl_actual_private_files = os.listdir("bin/generation/docker/prairielearn/student_tests/data/files/test_private")
+pl_actual_private_files = os.listdir("bin/generation/prairielearn/tests/student_tests/data/files/test_private")
 pl_actual_private_files.sort()
 
 assert gs_actual_private_files == expected_private
