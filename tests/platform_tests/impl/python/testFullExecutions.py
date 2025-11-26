@@ -216,6 +216,60 @@ class TestFullExecutions(unittest.TestCase):
         actualOutput.assertCalledWith([1, 2, 3, 4])
         actualOutput.assertCalledWith("illegal!")
 
+    def testMultipleModuleMocksFullExecution(self):
+        with open(os.path.join(self.PYTHON_PROGRAM_DIRECTORY, "main.py"), 'w') as w:
+            w.writelines(
+                "import matplotlib.pyplot as plt\n" \
+                "import rich\n" \
+                "plt.plot([1, 2, 3, 4])\n" \
+                "plt.plot('illegal!')\n" \
+                "rich.print('huzzah!')\n"
+            )
+
+        submission = PythonSubmission() \
+            .setSubmissionRoot(self.PYTHON_PROGRAM_DIRECTORY) \
+            .enableRequirements() \
+            .addPackage("matplotlib") \
+            .addPackage("rich")\
+            .load() \
+            .build() \
+            .validate()
+
+        plotMock = SingleFunctionMock("plot")
+        richMock = SingleFunctionMock("print")
+
+        environment = ExecutionEnvironmentBuilder[PythonEnvironment, PythonResults]() \
+            .setTimeout(10) \
+            .setImplEnvironment(PythonEnvironmentBuilder, lambda x: x \
+                                .addModuleMock("matplotlib.pyplot", {"matplotlib.pyplot.plot": plotMock}) \
+                                .addModuleMock("rich", {"rich.print": richMock})
+                                .build()
+                                ) \
+            .build()
+
+        runner = PythonRunnerBuilder(submission) \
+            .subscribeToMock("matplotlib.pyplot.plot") \
+            .subscribeToMock("rich.print")\
+            .setEntrypoint(module=True) \
+            .build()
+
+        if environment.impl_environment is None:
+            self.fail()
+
+        Executor.execute(environment, runner)
+
+        submission.TEST_ONLY_removeRequirements()
+
+        matplotlibOutput = getResults(environment).impl_results.mocks["matplotlib.pyplot.plot"]
+
+        matplotlibOutput.assertCalledWith([1, 2, 3, 4])
+        matplotlibOutput.assertCalledWith("illegal!")
+
+        richOutput = getResults(environment).impl_results.mocks["rich.print"]
+
+        richOutput.assertCalled()
+
+
     def testSpyImportFullExecution(self):
         # This test is flaky on windows - rerunning it helps.
         # It seems to be due to how windows implements the package cache when installing
