@@ -225,6 +225,8 @@ class LocalAutograderCLI(AutograderCLITool):
 
         self.parser.add_argument("--bypass-submission-check", action="store_true", default=False,
                                  help="Bypass submission presence check. Note: This may cause the autograder to fail!")
+        
+        self.parser.add_argument("-s","--test-suite", default=None, help="Specify a specific submission file to grade")
 
     def set_config_arguments(self, configBuilder: AutograderConfigurationBuilder[AutograderConfiguration]):  # pragma: no cover
         pass

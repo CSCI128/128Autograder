@@ -73,6 +73,10 @@ class BasicConfiguration:
     The max score that students can get with extra credit. 
     Points greater than this will not be honored.
     """
+    submission_files: list
+    """
+    An optional list of expected submission files when submission files other than main/submission are submitted
+    """
 
 @dataclass(frozen=True)
 class AutograderConfiguration(Generic[LanguageConfigType]):
@@ -132,6 +136,7 @@ class AutograderConfigurationSchema(BaseSchema[AutograderConfiguration]):
                     Optional("allow_extra_credit", default=False): bool,
                     "perfect_score": And(int, lambda x: x >= 1),
                     "max_score": And(int, lambda x: x >= 1),
+                    Optional("submission_files", default=[]): And(list, lambda x: len(x)>0)
                 },
                 "build": {
                     "use_starter_code": bool,
