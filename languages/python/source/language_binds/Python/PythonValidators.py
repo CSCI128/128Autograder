@@ -1,5 +1,5 @@
 import importlib.util
-from typing import Callable, Dict, List
+from typing import Callable, Dict, List, Optional
 import requests
 import os
 from autograder_platform.StudentSubmission.AbstractValidator import AbstractValidator
@@ -17,10 +17,12 @@ class PythonFileValidator(AbstractValidator):
         self.allowedMainNames = allowedMainNames
         self.pythonFiles: Dict[FileTypeMap, List[str]] = {}
         self.looseMainMatchingAllowed: bool = False
+        self.submissionFileName: Optional[str] = None
 
     def setup(self, studentSubmission):
         submissionFiles = studentSubmission.getDiscoveredFileMap()
         self.looseMainMatchingAllowed = studentSubmission.getLooseMainMatchingEnabled()
+        self.submissionFileName=studentSubmission.getSubmissionFiles()
 
         if studentSubmission.getTestFilesEnabled() and FileTypeMap.TEST_FILES in submissionFiles.keys():
             self.pythonFiles[FileTypeMap.TEST_FILES] = submissionFiles[FileTypeMap.TEST_FILES]
@@ -34,6 +36,9 @@ class PythonFileValidator(AbstractValidator):
         if not self.pythonFiles[FileTypeMap.PYTHON_FILES]:
             self.addError(NoPyFilesError())
             return
+        
+        if self.submissionFileName and (self.submissionFileName in self.pythonFiles[FileTypeMap.PYTHON_FILES]):
+            return
 
         if self.looseMainMatchingAllowed and len(self.pythonFiles[FileTypeMap.PYTHON_FILES]) > 1:
             self.addError(TooManyFilesError(self.pythonFiles[FileTypeMap.PYTHON_FILES]))
@@ -45,6 +50,7 @@ class PythonFileValidator(AbstractValidator):
         mainNameFilter: Callable[[str], bool] = lambda x: x in self.allowedMainNames
 
         filteredFiles = list(filter(mainNameFilter, self.pythonFiles[FileTypeMap.PYTHON_FILES]))
+
 
         if not filteredFiles:
             self.addError(MissingMainFileError(self.allowedMainNames, self.pythonFiles[FileTypeMap.PYTHON_FILES]))

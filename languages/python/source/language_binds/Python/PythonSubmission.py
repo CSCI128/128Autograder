@@ -45,15 +45,22 @@ class PythonSubmission(AbstractStudentSubmission[CodeType]):
         self.requirementsEnabled: bool = False
         self.looseMainMatchingEnabled: bool = False
 
+        self.sumbissionFiles: Optional[str] = None
         self.discoveredFileMap: Dict[FileTypeMap, List[str]] = {}
 
         self.extraPackages: Dict[str, str] = {}
 
         self.entryPoint: Optional[CodeType] = None
+    
 
         self.addValidator(PythonFileValidator(self.ALLOWED_STRICT_MAIN_NAMES))
         self.addValidator(RequirementsValidator())
         self.addValidator(PackageValidator())
+        
+    
+    def acceptFile(self: Builder, filename: str) -> Builder:
+        self.submissionFiles=filename
+        return(self)
 
     def enableTestFiles(self: Builder, enableTestFiles: bool = True) -> Builder:
         self.testFilesEnabled = enableTestFiles
@@ -143,7 +150,8 @@ class PythonSubmission(AbstractStudentSubmission[CodeType]):
     def _identifyMainFile(self) -> str:
         if self.getLooseMainMatchingEnabled():
             return self.discoveredFileMap[FileTypeMap.PYTHON_FILES][0]
-
+        if (self.submissionFiles != None):
+            return (self.submissionFiles)
         for file in self.discoveredFileMap[FileTypeMap.PYTHON_FILES]:
             if os.path.basename(file) in self.ALLOWED_STRICT_MAIN_NAMES:
                 return file
@@ -197,3 +205,6 @@ class PythonSubmission(AbstractStudentSubmission[CodeType]):
 
     def getExtraPackages(self) -> Dict[str, str]:
         return self.extraPackages
+
+    def getSubmissionFiles(self) -> Optional[str]:
+        return self.submissionFiles
