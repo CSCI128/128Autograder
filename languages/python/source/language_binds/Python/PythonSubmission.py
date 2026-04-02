@@ -45,7 +45,7 @@ class PythonSubmission(AbstractStudentSubmission[CodeType]):
         self.requirementsEnabled: bool = False
         self.looseMainMatchingEnabled: bool = False
 
-        self.sumbissionFiles: Optional[str] = None
+        self.submissionFiles: Optional[str] = None
         self.discoveredFileMap: Dict[FileTypeMap, List[str]] = {}
 
         self.extraPackages: Dict[str, str] = {}
