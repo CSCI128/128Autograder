@@ -26,7 +26,7 @@ def filterStdOut(stdOut: Optional[List[str]]) -> Optional[List[str]]:
     filteredOutput: List[str] = []
     for line in stdOut:
         if "output " in line.lower():
-            filteredOutput.append(line[line.lower().find("output ") + 7:])
+            filteredOutput.append(line[line.lower().find("output ") + 7:].strip())
 
     return filteredOutput
 

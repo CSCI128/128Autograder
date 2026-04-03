@@ -82,9 +82,16 @@ class Assertions(unittest.TestCase):
         return actual
 
     def _assertIterableEqual(self, expected, actual, msg: Optional[str] = None):
+        errorMsg = msg if msg else None
+
         for i in range(len(expected)):
             if expected[i] != actual[i]:
-                self._raiseFailure("output", expected[i], actual[i], msg)
+                if isinstance(expected[i], str):
+                    errorMsg = f"Expected output line {i+1} does not match your output line {i+1}" 
+                if msg:
+                    errorMsg += f"\n\n" + str(msg)
+
+                self._raiseFailure("output", expected[i], actual[i], errorMsg)
 
     @staticmethod
     def findPrecision(x: float):
