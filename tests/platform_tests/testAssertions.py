@@ -49,6 +49,14 @@ class TestAssertions(Assertions):
         with self.assertRaises(AssertionError):
             self.assertMultiLineEqual("this\nis\na\nof\nlines", "this\nis\na\nof\nline")
 
+    def testAssertMultilineEqualFailureDiffLog(self):
+        expectedMsg= "Diff Log output: \x1b[42m\x1b[31ma\x1b[0m\x1b[42m\x1b[31mb\x1b[0m\x1b[41m\x1b[33mX\x1b[0m\x1b[42m\x1b[31md\x1b[0m\x1b[42m\x1b[31me\x1b[0m"
+        with self.assertRaises(AssertionError) as ex:
+            self.assertMultiLineEqual("abcde", "abXde")
+
+        actualMsg = str(ex.exception)
+        self.assertIn(expectedMsg, actualMsg)
+
     def testAssertFailureWithMsg(self):
         expectedMsg = "doubles aren't ints"
         with self.assertRaises(AssertionError) as ex:

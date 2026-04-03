@@ -1,3 +1,4 @@
+import difflib
 import math
 import re
 import unittest
@@ -11,6 +12,13 @@ class Assertions(unittest.TestCase):
     The primary differentiation factor of this is that it formats the outputs in a nicer way for both gradescope and the
     local autograder
     """
+    RED_BG: str = u"\u001b[41m"
+    GREEN_BG: str = u"\u001b[42m"
+    RESET: str = u"\u001b[0m"
+    RED_COLOR: str = u"\u001b[31m"
+    YELLOW_COLOR: str = u"\u001b[33m"
+    RESET_COLOR: str = u"\u001b[0m"
+
     def __init__(self, testResults):
         super().__init__(testResults)
         self.addTypeEqualityFunc(str, self.assertMultiLineEqual)
@@ -51,13 +59,48 @@ class Assertions(unittest.TestCase):
 
     @staticmethod
     def _raiseFailure(shortDescription: str, expectedObject: object, actualObject: object, msg: Optional[str]):
-        errorMsg = f"Incorrect {shortDescription}.\n" + \
-                   f"Expected {shortDescription}: {expectedObject}\n" + \
-                   f"Your {shortDescription}    : {actualObject}"
+        errorMsg = f"Incorrect {shortDescription}.\n" 
+        if expectedObject is not None and actualObject is not None and isinstance(expectedObject, str) and isinstance(actualObject, str):
+            diff_log = Assertions._highlightStringDifferences(expectedObject, actualObject)
+            errorMsg += f"Expected {shortDescription}: {expectedObject}\n"
+            errorMsg += f"Your {shortDescription}    : {actualObject}\n"
+            errorMsg += f"Diff Log {shortDescription}: {diff_log}{Assertions.RED_COLOR}"
+        else:
+            errorMsg += f"Expected {shortDescription}: {expectedObject}\n" + \
+                        f"Your {shortDescription}    : {actualObject}"
         if msg:
             errorMsg += "\n\n" + str(msg)
 
         raise AssertionError(errorMsg)
+
+    @staticmethod
+    def _highlightStringDifferences(expected: str, actual: str) -> str:
+        """Return diff log strings with differences highlighted."""
+        RED_BG = Assertions.RED_BG  
+        RED_COLOR = Assertions.RED_COLOR
+        GREEN_BG = Assertions.GREEN_BG
+        YELLOW_COLOR = Assertions.YELLOW_COLOR
+        RESET = Assertions.RESET
+
+        matcher = difflib.SequenceMatcher(None, expected, actual)
+        
+        diff_log = []
+        
+        for tag, i1, i2, j1, j2 in matcher.get_opcodes():
+            if tag == 'equal':
+                for ch in expected[i1:i2]:
+                    diff_log.append(f"{GREEN_BG}{RED_COLOR}{ch}{RESET}")
+            elif tag == 'replace':
+                for ch in actual[j1:j2]:
+                    diff_log.append(f"{RED_BG}{YELLOW_COLOR}{ch}{RESET}")
+            elif tag == 'delete':
+                for ch in expected[i1:i2]:
+                    diff_log.append(f"{RED_BG}{YELLOW_COLOR}{ch}{RESET}")
+            elif tag == 'insert':
+                for ch in actual[j1:j2]:
+                    diff_log.append(f"{RED_BG}{YELLOW_COLOR}{ch}{RESET}")
+        
+        return ''.join(diff_log)
 
     @staticmethod
     def _convertIterableFromString(expected, actual):
