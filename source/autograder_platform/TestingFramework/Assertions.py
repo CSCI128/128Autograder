@@ -13,11 +13,10 @@ class Assertions(unittest.TestCase):
     local autograder
     """
     RED_BG: str = u"\u001b[41m"
-    GREEN_BG: str = u"\u001b[42m"
-    RESET: str = u"\u001b[0m"
     RED_COLOR: str = u"\u001b[31m"
+    GREEN_BG: str = u"\u001b[42m"
     YELLOW_COLOR: str = u"\u001b[33m"
-    RESET_COLOR: str = u"\u001b[0m"
+    RESET: str = u"\u001b[0m"
 
     def __init__(self, testResults):
         super().__init__(testResults)
