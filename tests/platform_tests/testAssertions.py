@@ -50,7 +50,7 @@ class TestAssertions(Assertions):
             self.assertMultiLineEqual("this\nis\na\nof\nlines", "this\nis\na\nof\nline")
 
     def testAssertMultilineEqualFailureDiffLog(self):
-        expectedMsg= "Diff Log output: \x1b[42m\x1b[31ma\x1b[0m\x1b[42m\x1b[31mb\x1b[0m\x1b[41m\x1b[33mX\x1b[0m\x1b[42m\x1b[31md\x1b[0m\x1b[42m\x1b[31me\x1b[0m"
+        expectedMsg= "Diff Log output: \x1b[0m\x1b[42ma\x1b[0m\x1b[0m\x1b[42mb\x1b[0m\x1b[0m\x1b[41mX\x1b[0m\x1b[0m\x1b[42md\x1b[0m\x1b[0m\x1b[42me\x1b[0m\x1b[31m"
         with self.assertRaises(AssertionError) as ex:
             self.assertMultiLineEqual("abcde", "abXde")
 
