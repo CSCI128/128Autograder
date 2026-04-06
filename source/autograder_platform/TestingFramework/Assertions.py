@@ -83,7 +83,8 @@ class Assertions(unittest.TestCase):
         matcher = difflib.SequenceMatcher(None, expected, actual)
         
         diffLog = []
-        maxChars = min(Assertions.DIFF_MAX_CHARACTERS, len(actual))
+        # maxChars = min(Assertions.DIFF_MAX_CHARACTERS, len(actual), len(expected))
+        maxChars = Assertions.DIFF_MAX_CHARACTERS
         visibleCount = 0
 
         for tag, i1, i2, j1, j2 in matcher.get_opcodes():
