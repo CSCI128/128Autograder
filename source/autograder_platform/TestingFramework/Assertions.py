@@ -17,6 +17,8 @@ class Assertions(unittest.TestCase):
     GREEN_BG: str = u"\u001b[42m"
     RESET_COLOR: str = u"\u001b[0m"
 
+    DIFF_MAX_CHARACTERS = 200
+
     def __init__(self, testResults):
         super().__init__(testResults)
         self.addTypeEqualityFunc(str, self.assertMultiLineEqual)
@@ -59,10 +61,10 @@ class Assertions(unittest.TestCase):
     def _raiseFailure(shortDescription: str, expectedObject: object, actualObject: object, msg: Optional[str]):
         errorMsg = f"Incorrect {shortDescription}.\n" 
         if expectedObject is not None and actualObject is not None and isinstance(expectedObject, str) and isinstance(actualObject, str):
-            diff_log = Assertions._highlightStringDifferences(expectedObject, actualObject)
+            diffLog = Assertions._highlightStringDifferences(expectedObject, actualObject)
             errorMsg += f"Expected {shortDescription}: {expectedObject}\n"
             errorMsg += f"Your {shortDescription}    : {actualObject}\n"
-            errorMsg += f"Diff Log {shortDescription}: {diff_log}{Assertions.RED_COLOR}"
+            errorMsg += f"Diff Log {shortDescription}: {diffLog}{Assertions.RED_COLOR}"
         else:
             errorMsg += f"Expected {shortDescription}: {expectedObject}\n" + \
                         f"Your {shortDescription}    : {actualObject}"
@@ -80,23 +82,40 @@ class Assertions(unittest.TestCase):
 
         matcher = difflib.SequenceMatcher(None, expected, actual)
         
-        diff_log = []
-        
+        diffLog = []
+        maxChars = min(Assertions.DIFF_MAX_CHARACTERS, len(actual))
+        visibleCount = 0
+
         for tag, i1, i2, j1, j2 in matcher.get_opcodes():
+            if visibleCount >= maxChars:
+                break
+
             if tag == 'equal':
                 for ch in expected[i1:i2]:
-                    diff_log.append(f"{RESET_COLOR}{GREEN_BG}{ch}{RESET_COLOR}")
+                    if visibleCount >= maxChars:
+                        break
+                    diffLog.append(f"{RESET_COLOR}{GREEN_BG}{ch}{RESET_COLOR}")
+                    visibleCount += 1
             elif tag == 'replace':
                 for ch in actual[j1:j2]:
-                    diff_log.append(f"{RESET_COLOR}{RED_BG}{ch}{RESET_COLOR}")
+                    if visibleCount >= maxChars:
+                        break
+                    diffLog.append(f"{RESET_COLOR}{RED_BG}{ch}{RESET_COLOR}")
+                    visibleCount += 1
             elif tag == 'delete':
                 for ch in expected[i1:i2]:
-                    diff_log.append(f"{RESET_COLOR}{RED_BG}{ch}{RESET_COLOR}")
+                    if visibleCount >= maxChars:
+                        break
+                    diffLog.append(f"{RESET_COLOR}{RED_BG}{ch}{RESET_COLOR}")
+                    visibleCount += 1
             elif tag == 'insert':
                 for ch in actual[j1:j2]:
-                    diff_log.append(f"{RESET_COLOR}{RED_BG}{ch}{RESET_COLOR}")
-        
-        return ''.join(diff_log)
+                    if visibleCount >= maxChars:
+                        break
+                    diffLog.append(f"{RESET_COLOR}{RED_BG}{ch}{RESET_COLOR}")
+                    visibleCount += 1
+
+        return ''.join(diffLog)
 
     @staticmethod
     def _convertIterableFromString(expected, actual):
