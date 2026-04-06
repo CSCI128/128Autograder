@@ -1,3 +1,5 @@
+import re
+
 from autograder_platform.TestingFramework.Assertions import Assertions
 
 
@@ -48,6 +50,42 @@ class TestAssertions(Assertions):
     def testAssertMultilineEqualFailure(self):
         with self.assertRaises(AssertionError):
             self.assertMultiLineEqual("this\nis\na\nof\nlines", "this\nis\na\nof\nline")
+
+    def testAssertMultilineEqualFailureDiffLog(self):
+        expectedMsg= "Diff Log output: \x1b[0m\x1b[42ma\x1b[0m\x1b[0m\x1b[42mb\x1b[0m\x1b[0m\x1b[41mX\x1b[0m\x1b[0m\x1b[42md\x1b[0m\x1b[0m\x1b[42me\x1b[0m\x1b[31m"
+        with self.assertRaises(AssertionError) as ex:
+            self.assertMultiLineEqual("abcde", "abXde")
+
+        actualMsg = str(ex.exception)
+        self.assertIn(expectedMsg, actualMsg)
+
+    def testAssertMultilineEqualFailureDiffLogTruncatesAt200Chars(self):
+        expected = "b" * 205
+        actual = "a" * 205
+
+        with self.assertRaises(AssertionError) as ex:
+            self.assertMultiLineEqual(expected, actual)
+
+        actualMsg = str(ex.exception)
+        match = re.search(r"Diff Log output: (.*)$", actualMsg, re.DOTALL)
+        self.assertIsNotNone(match)
+
+        diff_log = re.sub(r"\x1b\[[0-9;]*m", "", match.group(1))
+        self.assertEqual(len(diff_log), 200)
+
+    def testAssertMultilineEqualFailureDiffLogTruncatesToActualLength(self):
+        expected = "b" * 100
+        actual = "a" * 50
+
+        with self.assertRaises(AssertionError) as ex:
+            self.assertMultiLineEqual(expected, actual)
+
+        actualMsg = str(ex.exception)
+        match = re.search(r"Diff Log output: (.*)$", actualMsg, re.DOTALL)
+        self.assertIsNotNone(match)
+
+        diff_log = re.sub(r"\x1b\[[0-9;]*m", "", match.group(1))
+        self.assertEqual(len(diff_log), 50)
 
     def testAssertFailureWithMsg(self):
         expectedMsg = "doubles aren't ints"

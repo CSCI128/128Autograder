@@ -1,3 +1,4 @@
+import difflib
 import math
 import re
 import unittest
@@ -11,6 +12,13 @@ class Assertions(unittest.TestCase):
     The primary differentiation factor of this is that it formats the outputs in a nicer way for both gradescope and the
     local autograder
     """
+    RED_BG: str = u"\u001b[41m"
+    RED_COLOR: str = u"\u001b[31m"
+    GREEN_BG: str = u"\u001b[42m"
+    RESET_COLOR: str = u"\u001b[0m"
+
+    DIFF_MAX_CHARACTERS = 200
+
     def __init__(self, testResults):
         super().__init__(testResults)
         self.addTypeEqualityFunc(str, self.assertMultiLineEqual)
@@ -51,13 +59,64 @@ class Assertions(unittest.TestCase):
 
     @staticmethod
     def _raiseFailure(shortDescription: str, expectedObject: object, actualObject: object, msg: Optional[str]):
-        errorMsg = f"Incorrect {shortDescription}.\n" + \
-                   f"Expected {shortDescription}: {expectedObject}\n" + \
-                   f"Your {shortDescription}    : {actualObject}"
+        errorMsg = f"Incorrect {shortDescription}.\n" 
+        if expectedObject is not None and actualObject is not None and isinstance(expectedObject, str) and isinstance(actualObject, str):
+            diffLog = Assertions._highlightStringDifferences(expectedObject, actualObject)
+            errorMsg += f"Expected {shortDescription}: {expectedObject}\n"
+            errorMsg += f"Your {shortDescription}    : {actualObject}\n"
+            errorMsg += f"Diff Log {shortDescription}: {diffLog}{Assertions.RED_COLOR}"
+        else:
+            errorMsg += f"Expected {shortDescription}: {expectedObject}\n" + \
+                        f"Your {shortDescription}    : {actualObject}"
         if msg:
             errorMsg += "\n\n" + str(msg)
 
         raise AssertionError(errorMsg)
+
+    @staticmethod
+    def _highlightStringDifferences(expected: str, actual: str) -> str:
+        """Return diff log strings with differences highlighted."""
+        RED_BG = Assertions.RED_BG  
+        GREEN_BG = Assertions.GREEN_BG
+        RESET_COLOR = Assertions.RESET_COLOR
+
+        matcher = difflib.SequenceMatcher(None, expected, actual)
+        
+        diffLog = []
+        # maxChars = min(Assertions.DIFF_MAX_CHARACTERS, len(actual), len(expected))
+        maxChars = Assertions.DIFF_MAX_CHARACTERS
+        visibleCount = 0
+
+        for tag, i1, i2, j1, j2 in matcher.get_opcodes():
+            if visibleCount >= maxChars:
+                break
+
+            if tag == 'equal':
+                for ch in expected[i1:i2]:
+                    if visibleCount >= maxChars:
+                        break
+                    diffLog.append(f"{RESET_COLOR}{GREEN_BG}{ch}{RESET_COLOR}")
+                    visibleCount += 1
+            elif tag == 'replace':
+                for ch in actual[j1:j2]:
+                    if visibleCount >= maxChars:
+                        break
+                    diffLog.append(f"{RESET_COLOR}{RED_BG}{ch}{RESET_COLOR}")
+                    visibleCount += 1
+            elif tag == 'delete':
+                for ch in expected[i1:i2]:
+                    if visibleCount >= maxChars:
+                        break
+                    diffLog.append(f"{RESET_COLOR}{RED_BG}{ch}{RESET_COLOR}")
+                    visibleCount += 1
+            elif tag == 'insert':
+                for ch in actual[j1:j2]:
+                    if visibleCount >= maxChars:
+                        break
+                    diffLog.append(f"{RESET_COLOR}{RED_BG}{ch}{RESET_COLOR}")
+                    visibleCount += 1
+
+        return ''.join(diffLog)
 
     @staticmethod
     def _convertIterableFromString(expected, actual):
@@ -82,9 +141,16 @@ class Assertions(unittest.TestCase):
         return actual
 
     def _assertIterableEqual(self, expected, actual, msg: Optional[str] = None):
+        errorMsg = msg if msg else None
+
         for i in range(len(expected)):
             if expected[i] != actual[i]:
-                self._raiseFailure("output", expected[i], actual[i], msg)
+                if isinstance(expected[i], str):
+                    errorMsg = f"Expected output line {i+1} does not match your output line {i+1}" 
+                if msg:
+                    errorMsg += f"\n\n" + str(msg)
+
+                self._raiseFailure("output", expected[i], actual[i], errorMsg)
 
     @staticmethod
     def findPrecision(x: float):
