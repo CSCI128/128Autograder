@@ -11,7 +11,7 @@ exclude =["tests"]
 
 [project]
     name = "128Autograder"
-    readme=../README.md
+    readme="../README.md"
     authors = [
         { name = "Gregory Bell" }
     ]
