@@ -11,6 +11,7 @@ exclude =["tests"]
 
 [project]
     name = "128Autograder"
+    readme=../README.md
     authors = [
         { name = "Gregory Bell" }
     ]
@@ -34,6 +35,11 @@ exclude =["tests"]
     dev = [
         "coverage[toml]",
         "build",
+    ]
+
+    python = [
+        # TODO: should make these versions dynamic
+        "128Autograder-Python==6.0.0rc1"
     ]
 
 [project.scripts]
