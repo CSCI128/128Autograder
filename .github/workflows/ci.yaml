@@ -181,3 +181,49 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: core/dist
+          skip-existing: true
+  build-and-publish-pypi-python:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    environment: release-python
+    defaults:
+      run:
+        working-directory: languages/python
+    if: ${{ startsWith(github.ref, 'refs/tags/v') || startsWith(github.ref, 'refs/heads/version_') }}
+    needs: [ unit-tests-python, e2e-tests ]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Install dependencies
+        run: pip install -e '.[dev]'
+      - name: Build
+        run: python -m build
+      - name: Publish package
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: languages/python/dist
+          skip-existing: true
+
+  build-and-publish-pypi-ipython:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    environment: release-ipython
+    defaults:
+      run:
+        working-directory: languages/ipython
+    if: ${{ startsWith(github.ref, 'refs/tags/v') || startsWith(github.ref, 'refs/heads/version_') }}
+    needs: [ unit-tests-python, e2e-tests ]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Install dependencies
+        run: pip install -e '.[dev]'
+      - name: Build
+        run: python -m build
+      - name: Publish package
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: languages/ipython/dist
+          skip-existing: true
