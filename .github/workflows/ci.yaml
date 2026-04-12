@@ -160,10 +160,11 @@ jobs:
           subject-digest: ${{ steps.push.outputs.digest }}
           push-to-registry: true
 
-  build-and-publish-pypi:
+  build-and-publish-pypi-core:
     runs-on: ubuntu-latest
     permissions:
       id-token: write
+    environment: release-core
     defaults:
       run:
         working-directory: core
@@ -178,3 +179,5 @@ jobs:
         run: python -m build
       - name: Publish package
         uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: core/dist
