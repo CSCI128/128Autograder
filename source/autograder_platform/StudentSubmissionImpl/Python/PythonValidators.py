@@ -1,5 +1,6 @@
 import importlib.util
-from typing import Callable, Dict, List
+import re
+from typing import Dict, List
 import requests
 import os
 from autograder_platform.StudentSubmission.AbstractValidator import AbstractValidator
@@ -12,9 +13,9 @@ class PythonFileValidator(AbstractValidator):
     def getValidationHook() -> ValidationHook:
         return ValidationHook.POST_LOAD
 
-    def __init__(self, allowedMainNames: List[str]):
+    def __init__(self, mainFileRegex: re.Pattern):
         super().__init__()
-        self.allowedMainNames = allowedMainNames
+        self.mainFileRegex = mainFileRegex
         self.pythonFiles: Dict[FileTypeMap, List[str]] = {}
         self.looseMainMatchingAllowed: bool = False
 
@@ -42,14 +43,12 @@ class PythonFileValidator(AbstractValidator):
         if self.looseMainMatchingAllowed:
             return
 
-        mainNameFilter: Callable[[str], bool] = lambda x: x in self.allowedMainNames
-
-        filteredFiles = list(filter(mainNameFilter, self.pythonFiles[FileTypeMap.PYTHON_FILES]))
+        filteredFiles = [f for f in self.pythonFiles[FileTypeMap.PYTHON_FILES] if self.mainFileRegex.match(f)]
 
         if not filteredFiles:
-            self.addError(MissingMainFileError(self.allowedMainNames, self.pythonFiles[FileTypeMap.PYTHON_FILES]))
+            self.addError(MissingMainFileError(["main.py", "submission.py", "submission_<AssessmentName>.py"], self.pythonFiles[FileTypeMap.PYTHON_FILES]))
             return
-        
+
         if len(filteredFiles) != 1:
             self.addError(TooManyFilesError(filteredFiles))
 
@@ -124,7 +123,3 @@ class PackageValidator(AbstractValidator):
                 continue
 
             self.addError(InvalidPackageError(package, version))
-
-
-        
-
