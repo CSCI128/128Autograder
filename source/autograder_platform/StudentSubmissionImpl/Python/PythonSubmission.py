@@ -38,6 +38,9 @@ class PythonSubmission(AbstractStudentSubmission[CodeType]):
     # this allows versioned and non versioned packages, but disallows local packages
     REQUIREMENTS_LINE_REGEX: re.Pattern = re.compile(r"^(\w|-)+(==)?(\d+\.?){0,3}$")
 
+    # matches main.py, submission.py, or submission_<AssessmentName>.py
+    MAIN_FILE_REGEX: re.Pattern = re.compile(r"^(main|submission(_\w+)?)\.py$")
+
     def __init__(self):
         super().__init__()
 
@@ -51,7 +54,7 @@ class PythonSubmission(AbstractStudentSubmission[CodeType]):
 
         self.entryPoint: Optional[CodeType] = None
 
-        self.addValidator(PythonFileValidator(self.ALLOWED_STRICT_MAIN_NAMES))
+        self.addValidator(PythonFileValidator(self.MAIN_FILE_REGEX))
         self.addValidator(RequirementsValidator())
         self.addValidator(PackageValidator())
 
@@ -145,7 +148,7 @@ class PythonSubmission(AbstractStudentSubmission[CodeType]):
             return self.discoveredFileMap[FileTypeMap.PYTHON_FILES][0]
 
         for file in self.discoveredFileMap[FileTypeMap.PYTHON_FILES]:
-            if os.path.basename(file) in self.ALLOWED_STRICT_MAIN_NAMES:
+            if self.MAIN_FILE_REGEX.match(os.path.basename(file)):
                 return file
 
         # unreachable
