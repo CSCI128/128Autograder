@@ -1,10 +1,11 @@
-import importlib
 import os
 from tomli import load
-from typing import Dict, Generic, Optional as OptionalType, TypeVar, Any
+from typing import Dict, Generic, Optional as OptionalType, TypeVar, Any, Literal
 from dataclasses import dataclass
 
-from schema import And, Optional, Regex, Schema, SchemaError
+import logging
+
+from schema import And, Optional, Or, Regex, Schema, SchemaError
 
 from autograder_platform.config.common import InvalidConfigException
 from autograder_platform.config.BaseSchema import BaseSchema
@@ -100,6 +101,10 @@ class AutograderConfiguration(Generic[LanguageConfigType]):
     """The language config for the autograder. See the the language's config for options."""
     build: BuildConfiguration
     """The build configuration for the autograder. See :ref:`BuildConfiguration` for options."""
+    system_log_level: Literal[logging.DEBUG, logging.INFO, logging.WARNING, logging.ERROR, logging.CRITICAL]
+    """The global application log level"""
+    system_logger_name: str
+    """The name of the global logger object"""
 
 
 class AutograderConfigurationSchema(BaseSchema[AutograderConfiguration]):
@@ -125,6 +130,8 @@ class AutograderConfigurationSchema(BaseSchema[AutograderConfiguration]):
                 "semester": And(str, Regex(r"^(F|S|SUM)\d{2}$")),
                 # TODO: need to make this use the current config file name
                 Optional("autograder_root", default="."): And(os.path.exists, os.path.isdir, lambda path: any([".toml" in file for file in os.listdir(path)])),
+                Optional("system_log_level", default=logging.ERROR): Or(logging.DEBUG, logging.INFO, logging.WARNING, logging.ERROR, logging.CRITICAL),
+                Optional("system_logger_name", default="autograder.core"): str,
                 "config": {
                     "language_to_use": And(str, AutograderConfigurationSchema.validateImplSource),
                     Optional("student_submission_directory", default="."): And(str, os.path.exists, os.path.isdir),
