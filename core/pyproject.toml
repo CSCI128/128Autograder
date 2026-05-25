@@ -1,0 +1,86 @@
+[build-system]
+    requires = ["setuptools >= 61"]
+    build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where=["source"]
+exclude =["tests"]
+
+[tool.setuptools.dynamic]
+    version = {attr = "autograder_platform.__version__"}
+
+[project]
+    name = "128Autograder"
+    authors = [
+        { name = "Gregory Bell" }
+    ]
+    maintainers = [
+        { name = "Gregory Bell" }
+    ]
+
+    dynamic = ["version"]
+
+    requires-python = ">=3.11.0"
+
+    dependencies = [
+        "HybridJSONTestRunner==1.0.0",
+        "Better-PyUnit-Format==0.2.3",
+        "schema==0.7.5",
+        "requests==2.31.0",
+        "tomli==2.0.1",
+    ]
+
+[project.optional-dependencies]
+    dev = [
+        "coverage[toml]",
+        "build",
+    ]
+
+    python = [
+        # TODO: should make these versions dynamic
+        "128Autograder-Python==6.0.0rc1"
+    ]
+
+[project.scripts]
+    run_gradescope = "autograder_cli.run_gradescope:tool"
+    run_prairielearn = "autograder_cli.run_prairielearn:tool"
+    test_my_work = "autograder_cli.run_local:tool"
+    run_autograder = "autograder_cli.run_local:tool"
+    create_gradescope_upload = "autograder_cli.create_upload:tool"
+    build_autograder = "autograder_cli.build_autograder:tool"
+
+[tool.pyright]
+include = ["source"]
+
+exclude = ["**__pycache__**"]
+scrict = ["."]
+
+executionEnvironments = [
+    { root = "tests", extraPaths = ["source", "source/utils/student", "source/utils"] }
+]
+
+[tool.coverage.run]
+command_line = "-m unittest"
+omit = [
+    # TODO write unit tests for the CLI
+    "tests/**",
+    "source/autograder_cli/*",
+    "__getstate__*",
+    "__setstate__*",
+]
+
+[tool.coverage.report]
+fail_under = 90
+skip_empty = true
+exclude_also = [
+    # Dont flag error conditions that cant be reached or that are just defensive
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "raise EnvironmentError",
+    "raise AttributeError",
+    "raise InvalidRunner",
+    "if __name__ == .__main__.:",
+    # Don't complain about abstract methods, they aren't run:
+    "@(abc\\.)?abstractmethod",
+]
+

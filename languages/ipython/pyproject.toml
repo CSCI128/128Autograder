@@ -1,0 +1,76 @@
+[build-system]
+requires = ["setuptools >= 61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["source"]
+include = ["language_binds.IPython", "ipython_binds_cli"]
+namespaces = true
+exclude = ["tests"]
+
+[tool.setuptools.dynamic]
+version = { attr = "language_binds.IPython.__version__" }
+
+
+[project]
+name = "128Autograder-iPython"
+readme = "README.md"
+authors = [
+    { name = "Gregory Bell" }
+]
+
+maintainers = [
+    { name = "Gregory Bell" }
+]
+
+dynamic = ["version"]
+
+requires-python = ">=3.11.0"
+
+dependencies = [
+    "nbformat",
+    "nbconvert",
+    "rich==14.0.0",
+    #        "128autograder==5.2.2",
+]
+
+
+[project.optional-dependencies]
+dev = [
+    "coverage[toml]",
+    "build",
+]
+
+[project.scripts]
+ipython_submission_manager = "ipython_binds_cli.ipython_submission_manager:tool"
+
+[tool.coverage.run]
+command_line = "-m unittest"
+concurrency = ["multiprocessing"]
+omit = [
+    "**/Python/*",
+    "sandbox/**",
+    "testPrograms/**",
+    "*/student_submission*",
+    "INJECTED_*",
+    "**/test*",
+    "test_code*",
+    "**/autograder_*/**",
+    "tests/**",
+    "source/autograder_cli/*",
+    "__getstate__*",
+    "__setstate__*",
+]
+
+[tool.coverage.report]
+fail_under = 90
+skip_empty = true
+exclude_also = [
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "raise EnvironmentError",
+    "raise AttributeError",
+    "raise InvalidRunner",
+    "if __name__ == .__main__.:",
+    "@(abc\\.)?abstractmethod",
+]
