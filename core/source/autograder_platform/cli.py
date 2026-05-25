@@ -9,6 +9,7 @@ from unittest import TestSuite
 import autograder_platform
 from autograder_platform.config.Config import AutograderConfigurationBuilder, AutograderConfigurationProvider, \
     AutograderConfiguration
+from autograder_platform.config.Logging import AutograderLoggerProvider
 
 KNOWN_REGISTRATIONS_NAMES = ["language_binds.IPython", "language_binds.Python"]
 
@@ -16,31 +17,6 @@ class AutograderCLITool(abc.ABC):
     PACKAGE_ERROR: str = "Required Package Error"
     SUBMISSION_ERROR: str = "Student Submission Error"
     ENVIRONMENT_ERROR: str = "Environment Error"
-    RED_COLOR: str = u"\u001b[31m"
-    YELLOW_COLOR: str = u"\u001b[33m"
-    BLUE_COLOR: str = u"\u001b[34m"
-    RESET_COLOR: str = u"\u001b[0m"
-
-    @classmethod
-    def print_error_message(cls, errorType: str, errorText: str) -> None:
-        """
-        This function prints out a validation error message as they occur.
-        The error type is colored red when it is printed
-        the format used is `[<error_type>] <error_text>`
-        :param errorType: The error type
-        :param errorText: the text for the error
-        :return:
-        """
-        print(f"[{cls.RED_COLOR}{errorType}{cls.RESET_COLOR}]: {errorText}")
-
-
-    @classmethod
-    def print_warning_message(cls, warningType: str, warningText: str) -> None:
-        print(f"[{cls.YELLOW_COLOR}{warningType}{cls.RESET_COLOR}]: {warningText}")
-
-    @classmethod
-    def print_info_message(cls, text: str) -> None:
-        print(f"[{cls.BLUE_COLOR}INFORMATION{cls.RESET_COLOR}]: {text}")
 
     def __init__(self, tool_name: str):
         self.config: Optional[AutograderConfiguration] = None
@@ -86,6 +62,7 @@ class AutograderCLITool(abc.ABC):
 
         self.config = builder.build()
 
+        AutograderLoggerProvider.configure(self.config.system_logger_name, self.config.system_log_level)
         AutograderConfigurationProvider.set(self.config)
 
     def discover_installed_language_binds(self, additional_languages: List[str]):  # pragma: no cover
@@ -95,10 +72,10 @@ class AutograderCLITool(abc.ABC):
         for module in to_discover:
             try:
                 mod = importlib.import_module(module)
-                # self.print_info_message(f"Successfully registered {module} at {mod.__version__}")
             except ImportError:
                 pass
 
     def discover_tests(self):  # pragma: no cover
         self.tests = unittest.loader.defaultTestLoader.discover(self.config.config.test_directory)
+        AutograderLoggerProvider.get().debug(f"discovered {self.tests.countTestCases()} test cases")
 

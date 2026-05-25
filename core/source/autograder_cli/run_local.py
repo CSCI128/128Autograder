@@ -4,22 +4,27 @@ import os
 import re
 import subprocess
 import sys
-from typing import Dict, List, Optional
+from typing import List, Optional
 
 import BetterPyUnitFormat
 import tomli
+import logging
 
 from autograder_platform.cli import AutograderCLITool
 from autograder_platform.config.Config import AutograderConfigurationBuilder, AutograderConfiguration, \
     AutograderConfigurationProvider
+from autograder_platform.config.Logging import AutograderLoggerProvider
 
 
 class LocalAutograderCLI(AutograderCLITool):
-    SUBMISSION_REGEX: re.Pattern = re.compile(r"^(\w|\s)+\.py$")
+    SUBMISSION_REGEX: re.Pattern = re.compile(r"^([\w\s])+\.py$")
     FILE_HASHES_NAME = ".filehashes"
 
     def __init__(self):
         super().__init__(f"Local v{AutograderCLITool.get_version()}")
+        # todo: i dont love doing a one off configuration of the logger here, but students generally like it to be chatty
+        AutograderLoggerProvider.configure("local_autograder.run", logging.INFO)
+        self.logger = AutograderLoggerProvider.get()
 
         self.config_location = ""
 
@@ -30,7 +35,7 @@ class LocalAutograderCLI(AutograderCLITool):
         """
         zip_files = [os.path.join(directory, file) for file in os.listdir(directory) if file[-4:] == ".zip"]
         if len(zip_files) > 0:
-            self.print_info_message("Previous submissions found. Cleaning out old submission files")
+            self.logger.warning("Previous submissions found. Cleaning out old submission files")
             for file in zip_files:
                 os.remove(file)
 
@@ -91,15 +96,15 @@ class LocalAutograderCLI(AutograderCLITool):
 
     def verify_student_work_present(self, submission_directory: str) -> bool:
         if not os.path.exists(submission_directory):
-            self.print_error_message(self.SUBMISSION_ERROR, f"Failed to locate student work in {submission_directory}")
+            self.logger.error(f"Failed to locate student work in {submission_directory}")
             return False
 
         # this doesn't catch files in folders. Something to be aware of for students
         files = [file for file in os.listdir(submission_directory) if self.SUBMISSION_REGEX.match(file)]
 
         if len(files) < 1:
-            self.print_error_message(self.SUBMISSION_ERROR, f"No valid files found in submission directory.")
-            self.print_error_message(self.SUBMISSION_ERROR, f"Found {os.listdir(submission_directory)}.")
+            self.logger.error(f"No valid files found in submission directory.")
+            self.logger.error(f"Found {os.listdir(submission_directory)}.")
             return False
 
         return True
@@ -160,15 +165,15 @@ class LocalAutograderCLI(AutograderCLITool):
         return status
 
     def update_autograder(self, version) -> bool:
-        self.print_info_message("Updating autograder...")
+        self.logger.info("Updating autograder...")
 
         try:
             subprocess.check_call([sys.executable, "-m", "pip", "install", f"128Autograder=={version}", "--break-system-packages"])
         except subprocess.CalledProcessError:
-            self.print_error_message(self.ENVIRONMENT_ERROR, "Failed to update autograder!")
+            self.logger.error("Failed to update autograder!")
             return False
 
-        self.print_info_message("Autograder Updated")
+        self.logger.info("Autograder Updated")
         return True
 
     def select_root(self) -> Optional[str]:
@@ -176,24 +181,23 @@ class LocalAutograderCLI(AutograderCLITool):
 
         full_path = os.path.abspath("")
 
-        self.print_info_message(f"Discovering autograders in {full_path}...")
+        self.logger.info(f"Discovering autograders in {full_path}...")
 
         self.discover_autograders(full_path, autograders)
 
         if len(autograders) == 0:
-            self.print_error_message(self.ENVIRONMENT_ERROR, f"Failed to locate any autograders in '{full_path}'!")
-            self.print_error_message(self.ENVIRONMENT_ERROR,
-                                     "Make sure that this script is being run in the same directory as your autograder!")
+            self.logger.error(f"Failed to locate any autograders in '{full_path}'!")
+            self.logger.error("Make sure that this script is being run in the same directory as your autograder!")
             return None
 
         if len(autograders) == 1:
-            self.print_info_message(f"Selecting autograder config located at '{autograders[0]}'")
+            self.logger.info(f"Selecting autograder config located at '{autograders[0]}'")
             return autograders[0]
 
         autograders.sort()
 
-        self.print_info_message(f"Multiple autograders found at {full_path}!")
-        self.print_info_message(f"Please select the autograder you want to run")
+        self.logger.info(f"Multiple autograders found at {full_path}!")
+        self.logger.info(f"Please select the autograder you want to run")
 
         for i, path in enumerate(autograders):
             name = self.get_autograder_name(path)
@@ -212,7 +216,7 @@ class LocalAutograderCLI(AutograderCLITool):
             except ValueError:
                 selection = len(autograders) + 1
 
-        self.print_info_message(f"Selecting autograder config located at '{autograders[selection - 1]}'")
+        self.logger.info(f"Selecting autograder config located at '{autograders[selection - 1]}'")
         return autograders[selection - 1]
 
     def configure_options(self):  # pragma: no cover
@@ -237,30 +241,29 @@ class LocalAutograderCLI(AutograderCLITool):
         self.arguments = self.parser.parse_args()
 
         if self.arguments.version:
-            self.print_info_message(f"Autograder version: {self.get_version()}")
+            self.logger.info(f"Autograder version: {self.get_version()}")
             return False
 
         self.config_location = os.path.abspath(self.arguments.config_file) if \
             os.path.exists(self.arguments.config_file) else self.select_root()
 
         if self.config_location is None:
-            self.print_error_message(self.ENVIRONMENT_ERROR, "Failed to load autograder!")
+            self.logger.error(self.ENVIRONMENT_ERROR, "Failed to load autograder!")
             return True
 
         root_directory = os.path.dirname(self.config_location)
 
-        self.print_info_message(f"Running autograder from '{root_directory}'")
+        self.logger.info(f"Running autograder from '{root_directory}'")
 
-        self.print_info_message("Verifying autograder version")
+        self.logger.debug("Verifying autograder version")
         version = self.get_autograder_version(self.config_location)
 
         if not self.arguments.bypass_version_check and not self.compare_autograder_versions(version):
             if self.update_autograder(version):
-                self.print_info_message("Updated succeeded! Please rerun the script!")
+                self.logger.info("Updated succeeded! Please rerun the script!")
                 return True
             else:
-                self.print_error_message(self.ENVIRONMENT_ERROR,
-                                         "Update failed! Please see above for failure reason or rerun as 'test_my_work --bypass-version-check'")
+                self.logger.error("Update failed! Please see above for failure reason or rerun as 'test_my_work --bypass-version-check'")
                 return True
 
         if not self.arguments.bypass_submission_check and not self.verify_student_work_present(os.path.join(root_directory, self.arguments.submission_directory)):
@@ -282,14 +285,14 @@ class LocalAutograderCLI(AutograderCLITool):
 
         self.discover_tests()
 
-        self.print_info_message("Starting autograder")
+        self.logger.info("Starting autograder")
 
         runner = BetterPyUnitFormat.BetterPyUnitTestRunner()
 
         res = runner.run(self.tests)
 
         if not fileChanged:
-            self.print_warning_message("Student Submission Warning", "Student's submission may not have changed!")
+            self.logger.warning("Student's submission may not have changed!")
 
         return not res.wasSuccessful()
 

@@ -1,32 +1,37 @@
 import io
 import logging
+import re
 import unittest
 
-from autograder_platform.config.Logging import GeneralLogging
+from autograder_platform.config.Logging import AutograderLoggerProvider
 
 
-class TestGeneralLoggingFormatter(unittest.TestCase):
-    LOGGER_NAME = "test_logging_formatter"
+class TestGeneralFormatter(unittest.TestCase):
+    LOGGER_NAME = "test_logging_provider"
+
+    def setUp(self) -> None:
+        AutograderLoggerProvider.reset()
+        self.stream = io.StringIO()
+        AutograderLoggerProvider.configure(self.LOGGER_NAME, logging.DEBUG, self.stream)
+        self.logger = AutograderLoggerProvider.get()
 
     def renderLogOutput(self, level: int, message: str) -> str:
-        stream = io.StringIO()
-        handler = logging.StreamHandler(stream)
-        handler.setFormatter(GeneralLogging())
-
-        logger = logging.getLogger(f"{self.LOGGER_NAME}_{level}_{id(stream)}")
-        logger.handlers = [handler]
-        logger.setLevel(logging.DEBUG)
-        logger.propagate = False
-
-        logger.log(level, message)
-
-        return stream.getvalue()
+        self.logger.log(level, message)
+        return self.stream.getvalue()
 
     def assertRenderedOutput(self, output: str, expected_level_name: str, message: str):
         self.assertIn(expected_level_name, output)
         self.assertIn(message, output)
         self.assertIn(self.LOGGER_NAME, output)
-        self.assertRegex(output, r"\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\]")
+        message_pattern = (
+            r"^\033\[0;37m"  # color for general status
+            r"\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\]"  # date
+            r" \[[^\]]+\]"  # name
+            r"\033\[0m "  # reset color
+            rf"\[{re.escape(expected_level_name)}\]"
+            rf" - {re.escape(message)}\n$"
+        )
+        self.assertRegex(output, message_pattern)
 
     def testDebugColorAppliedThroughLogger(self):
         output = self.renderLogOutput(logging.DEBUG, "debug message")
