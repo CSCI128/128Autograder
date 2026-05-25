@@ -1,5 +1,4 @@
 import unittest
-from unittest.mock import patch
 import sys
 import os
 import shutil
@@ -9,6 +8,9 @@ import importlib.util
 from autograder_cli.run_local import LocalAutograderCLI
 import random
 import string
+import logging
+from autograder_platform.config.Logging import AutograderLoggerProvider
+
 
 class TestStudentTestMyWork(unittest.TestCase):
     TEST_DIRECTORY: str = "./testData"
@@ -22,6 +24,9 @@ class TestStudentTestMyWork(unittest.TestCase):
         os.mkdir(self.TEST_DIRECTORY)
 
         os.mkdir(self.SUBMISSION_DIRECTORY)
+        self.logOutput = StringIO()
+        AutograderLoggerProvider.reset()
+        AutograderLoggerProvider.configure(__name__, logging.INFO, self.logOutput)
 
         self.localCLI = LocalAutograderCLI()
 
@@ -31,26 +36,23 @@ class TestStudentTestMyWork(unittest.TestCase):
             shutil.rmtree(self.TEST_DIRECTORY)
 
 
-    @patch('sys.stdout', new_callable=StringIO)
-    def testStudentWorkNotPresent(self, capturedStdout: StringIO):
+    def testStudentWorkNotPresent(self):
         result = self.localCLI.verify_student_work_present(self.SUBMISSION_DIRECTORY)
 
         self.assertFalse(result)
 
-        self.assertIn("No valid files found", capturedStdout.getvalue())
+        self.assertIn("No valid files found", self.logOutput.getvalue())
         
     
-    @patch('sys.stdout', new_callable=StringIO)
-    def testStudentWorkInvalidDirectory(self, capturedStdout: StringIO):
+    def testStudentWorkInvalidDirectory(self):
         result = self.localCLI.verify_student_work_present("./DNE")
 
         self.assertFalse(result)
 
-        self.assertIn("Failed to locate student work", capturedStdout.getvalue())
+        self.assertIn("Failed to locate student work", self.logOutput.getvalue())
 
 
-    @patch('sys.stdout', new_callable=StringIO)
-    def testStudentWorkNoPy(self, capturedStdout: StringIO):
+    def testStudentWorkNoPy(self):
         for _ in range(10):
             fileName = "".join([random.choice(string.ascii_letters) for _ in range(10)])
 
@@ -61,7 +63,7 @@ class TestStudentTestMyWork(unittest.TestCase):
 
         self.assertFalse(result)
 
-        self.assertIn("No valid files found", capturedStdout.getvalue())
+        self.assertIn("No valid files found", self.logOutput.getvalue())
 
     def testStudentWorkPresentManyFiles(self):
         for _ in range(10):
@@ -74,8 +76,7 @@ class TestStudentTestMyWork(unittest.TestCase):
 
         self.assertTrue(result)
 
-    @patch('sys.stdout', new_callable=StringIO)
-    def testCleanPrevSubmission(self, _):
+    def testCleanPrevSubmission(self):
         for _ in range(10):
             fileName = "".join([random.choice(string.ascii_letters) for _ in range(10)]) + ".zip"
 
@@ -113,7 +114,7 @@ class TestStudentTestMyWork(unittest.TestCase):
 
     def testUnchangedDetected(self):
         with open(os.path.join(self.SUBMISSION_DIRECTORY, "submission.py"), 'w') as w:
-            w.write("Frist run!")
+            w.write("First run!")
 
         result = self.localCLI.verify_file_changed(self.SUBMISSION_DIRECTORY)
 
@@ -252,9 +253,8 @@ class TestStudentTestMyWork(unittest.TestCase):
 
         self.localCLI.get_version = get_version
 
-    @patch('sys.stdout', new_callable=StringIO)
     @unittest.skip("This feature is no longer available in the CLI")
-    def testMissingPackage(self, _):
+    def testMissingPackage(self):
         self.assertIsNone(importlib.util.find_spec("pip_install_test"))
 
         res = self.localCLI.verifyRequiredPackages({"pip_install_test": "pip-install-test"})
@@ -265,41 +265,35 @@ class TestStudentTestMyWork(unittest.TestCase):
 
         subprocess.run([sys.executable, "-m", "pip", "uninstall", "-y", "pip-install-test"], stdout=subprocess.DEVNULL)
         
-    @patch('sys.stdout', new_callable=StringIO)
     @unittest.skip("This feature is no longer available in the CLI")
-    def testPackageDoesNotExist(self, _):
+    def testPackageDoesNotExist(self):
         self.assertIsNone(importlib.util.find_spec("this_package_doesnt_exist"))
 
         res = self.localCLI.verifyRequiredPackages({"this_package_doesnt_exist": "this_package_doesnt_exist"})
 
         self.assertFalse(res)
 
-    @patch('sys.stdout', new_callable=StringIO)
     @unittest.skip("This feature is no longer available in the CLI")
-    def testPackagesPresent(self, _):
+    def testPackagesPresent(self):
         self.assertIsNotNone(importlib.util.find_spec("dill"))
 
         self.localCLI.verifyRequiredPackages({"dill": "dill-install-test"})
 
         self.assertIsNotNone(importlib.util.find_spec("dill"))
 
-    @patch('sys.stdout', new_callable=StringIO)
     @unittest.skip("This feature is no longer available in the CLI")
     def testMinPythonVersionTooLow(self, _):
         self.assertFalse(self.localCLI.verifyPythonVersion((3, 12), (3, 11, 2, 'final', 0)))
 
-    @patch('sys.stdout', new_callable=StringIO)
     @unittest.skip("This feature is no longer available in the CLI")
-    def testMinPythonVersionValid(self, _):
+    def testMinPythonVersionValid(self):
         self.assertTrue(self.localCLI.verifyPythonVersion((3, 11), (3, 11, 2, 'final', 0)))
         self.assertTrue(self.localCLI.verifyPythonVersion((3, 11), (3, 12, 2, 'final', 0)))
 
-    @patch('sys.stdout', new_callable=StringIO)
     @unittest.skip("This feature is no longer available in the CLI")
-    def testWorkingDirectoryIncorrect(self, _):
+    def testWorkingDirectoryIncorrect(self):
         self.assertFalse(self.localCLI.verifyWorkingDirectory("./sandbox"))
        
-    @patch('sys.stdout', new_callable=StringIO)
     @unittest.skip("This feature is no longer available in the CLI")
-    def testWorkingDirectoryIsCorrect(self, _):
+    def testWorkingDirectoryIsCorrect(self):
         self.assertTrue(self.localCLI.verifyWorkingDirectory(os.getcwd()))
